@@ -257,6 +257,7 @@
                 <div class="card no-print">
                     <div class="card-header py-1">Admin IOU Entry</div>
                     <div class="card-body">
+                        <!-- IOU Entry Form -->
                         <div class="row g-2 mb-2">
                             <div class="col-6 col-md-2"><label>Date</label><input type="date" id="iou_date" class="form-control form-control-sm"></div>
                             <div class="col-6 col-md-2"><label>DA Name</label><select id="iou_da_name" class="form-select form-select-sm"></select></div>
@@ -271,12 +272,33 @@
                         <button id="iou_save_btn" onclick="saveIOU()" class="btn btn-success btn-sm w-100 mb-2">Save IOU Entry</button>
                         <button id="iou_cancel_btn" onclick="cancelIOUEdit()" class="btn btn-secondary btn-sm w-100 mb-2 hidden">Cancel Edit</button>
                         
+                        <!-- FILTER SECTION (NEW) -->
+                        <div class="row g-2 mb-2 p-2 bg-light border rounded align-items-end">
+                            <div class="col-6 col-md-3">
+                                <label class="fw-bold text-muted">From Date</label>
+                                <input type="date" id="filter_iou_from" class="form-control form-control-sm" onchange="loadAdminIOU()">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="fw-bold text-muted">To Date</label>
+                                <input type="date" id="filter_iou_to" class="form-control form-control-sm" onchange="loadAdminIOU()">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="fw-bold text-muted">Filter by DA</label>
+                                <select id="filter_iou_da" class="form-select form-select-sm" onchange="loadAdminIOU()">
+                                    <option value="">All DA</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-2">
+                                <button onclick="resetIOUFilter()" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
+                            </div>
+                        </div>
+
                         <div class="table-responsive"><table class="table table-bordered table-sm">
                             <thead class="table-secondary">
                                 <tr><th>#</th><th>Date</th><th>DA Name</th><th>Territory</th><th>MPO</th><th>Summary</th><th>Sales</th><th>Qty</th><th>Taka</th><th>%</th><th>Action</th></tr>
                             </thead>
                             <tbody id="iou_admin_table_body"></tbody>
-                            <tfoot><tr class="fw-bold"><td colspan="6">Total</td><td id="iou_tot_sales">0</td><td id="iou_tot_qty">0</td><td id="iou_tot_taka">0</td><td></td><td></td></tr></tfoot>
+                            <tfoot><tr class="fw-bold table-warning"><td colspan="6">Filtered Total</td><td id="iou_tot_sales">0</td><td id="iou_tot_qty">0</td><td id="iou_tot_taka">0</td><td></td><td></td></tr></tfoot>
                         </table></div>
                     </div>
                 </div>
@@ -419,7 +441,7 @@
         let currentUser = null;
         let editingBillId = null;
         let editingBillDaId = null; 
-        let editingIouId = null; // NEW: For IOU Edit state
+        let editingIouId = null; 
         let daListCache = {}; 
         let currentIouId = null;
         
@@ -975,12 +997,18 @@
 
         function loadDAListForIOU() {
             database.ref('Users').once('value', snap => {
-                const select = document.getElementById('iou_da_name');
-                select.innerHTML = '<option value="">Select DA</option>';
+                const selectAdd = document.getElementById('iou_da_name');
+                const selectFilter = document.getElementById('filter_iou_da');
+                
+                selectAdd.innerHTML = '<option value="">Select DA</option>';
+                selectFilter.innerHTML = '<option value="">All DA</option>';
+                
                 snap.forEach(child => {
                     const u = child.val();
                     daListCache[child.key] = u.name;
-                    select.innerHTML += `<option value="${child.key}">${u.name}</option>`;
+                    const optionHtml = `<option value="${child.key}">${u.name}</option>`;
+                    selectAdd.innerHTML += optionHtml;
+                    selectFilter.innerHTML += optionHtml;
                 });
             });
         }
@@ -1003,7 +1031,6 @@
                 status: 'active'
             };
 
-            // Update or Create Logic
             let operation;
             if (editingIouId) {
                 operation = database.ref('IOU_List/' + editingIouId).update(data);
@@ -1052,7 +1079,6 @@
                 document.getElementById('iou_save_btn').innerText = "Update IOU Entry";
                 document.getElementById('iou_cancel_btn').classList.remove('hidden');
                 
-                // Scroll to top
                 document.getElementById('iou_admin-tab').scrollIntoView();
             });
         }
@@ -1061,33 +1087,58 @@
             clearIOUForm();
         }
 
+        function resetIOUFilter() {
+            document.getElementById('filter_iou_from').value = '';
+            document.getElementById('filter_iou_to').value = '';
+            document.getElementById('filter_iou_da').value = '';
+            loadAdminIOU();
+        }
+
         function loadAdminIOU() {
+            const filterFrom = document.getElementById('filter_iou_from').value;
+            const filterTo = document.getElementById('filter_iou_to').value;
+            const filterDa = document.getElementById('filter_iou_da').value;
+
             database.ref('IOU_List').on('value', snap => {
                 const tbody = document.getElementById('iou_admin_table_body');
                 tbody.innerHTML = '';
                 let tSales=0, tQty=0, tTaka=0;
                 let count = 1;
+                
                 if(!snap.exists()) tbody.innerHTML = '<tr><td colspan="11" class="text-center">No IOU Data</td></tr>';
                 
                 snap.forEach(child => {
                     const d = child.val();
-                    tSales += d.sales; tQty += d.qty; tTaka += d.taka;
                     
-                    const statusBadge = d.status === 'used' ? 
-                        '<span class="badge bg-secondary">Used</span>' : 
-                        '<span class="badge bg-success">Active</span>';
+                    // Filter Logic
+                    let show = true;
+                    if(filterFrom && d.date < filterFrom) show = false;
+                    if(filterTo && d.date > filterTo) show = false;
+                    if(filterDa && d.daId !== filterDa) show = false;
 
-                    tbody.innerHTML += `<tr class="${d.status === 'used' ? 'table-secondary' : ''}">
-                        <td>${count++}</td><td>${formatDate(d.date)}</td><td>${d.daName}</td><td>${d.territory}</td>
-                        <td>${d.mpo}</td><td>${d.summary}</td><td>${d.sales}</td><td>${d.qty}</td>
-                        <td>${d.taka}</td><td>${d.percent}%</td>
-                        <td>
-                            ${statusBadge} 
-                            <button class="btn btn-sm btn-warning" onclick="editIOU('${child.key}')">Edit</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteIOU('${child.key}')">X</button>
-                        </td>
-                    </tr>`;
+                    if(show) {
+                        tSales += d.sales; 
+                        tQty += d.qty; 
+                        tTaka += d.taka;
+                        
+                        const statusBadge = d.status === 'used' ? 
+                            '<span class="badge bg-secondary">Used</span>' : 
+                            '<span class="badge bg-success">Active</span>';
+
+                        tbody.innerHTML += `<tr class="${d.status === 'used' ? 'table-secondary' : ''}">
+                            <td>${count++}</td><td>${formatDate(d.date)}</td><td>${d.daName}</td><td>${d.territory}</td>
+                            <td>${d.mpo}</td><td>${d.summary}</td><td>${d.sales}</td><td>${d.qty}</td>
+                            <td>${d.taka}</td><td>${d.percent}%</td>
+                            <td>
+                                ${statusBadge} 
+                                <button class="btn btn-sm btn-warning" onclick="editIOU('${child.key}')">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteIOU('${child.key}')">X</button>
+                            </td>
+                        </tr>`;
+                    }
                 });
+                
+                // Update Totals
                 document.getElementById('iou_tot_sales').innerText = tSales;
                 document.getElementById('iou_tot_qty').innerText = tQty;
                 document.getElementById('iou_tot_taka').innerText = tTaka;
@@ -1097,7 +1148,7 @@
         function deleteIOU(id) {
             if(confirm("Delete IOU?")) {
                 database.ref('IOU_List/' + id).remove();
-                if(editingIouId === id) clearIOUForm(); // If deleting the item being edited
+                if(editingIouId === id) clearIOUForm();
             }
         }
 
