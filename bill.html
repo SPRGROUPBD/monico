@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f4f7f6; font-family: sans-serif; font-size: 14px; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; }
         .login-container { max-width: 400px; margin: 100px auto; }
         .status-red { background-color: #ffebee; border-left: 5px solid #ef5350; }
         .status-green { background-color: #e8f5e9; border-left: 5px solid #66bb6a; }
@@ -34,6 +34,38 @@
         /* IOU Used Status */
         .iou-used { color: #888; font-style: italic; }
         .badge-used { background-color: #6c757d !important; }
+
+        /* Dashboard UI Styles */
+        .dash-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .dash-card:hover { transform: translateY(-2px); }
+        .dash-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 24px;
+            color: #fff;
+        }
+        .bg-dash-total { background: linear-gradient(45deg, #17a2b8, #138496); }
+        .bg-dash-pending { background: linear-gradient(45deg, #ffc107, #e0a800); }
+        .bg-dash-approved { background: linear-gradient(45deg, #28a745, #218838); }
+        
+        .user-card {
+            border-left: 4px solid #0d6efd;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .user-card:hover {
+            background-color: #f8f9fa;
+            border-left-color: #0a58ca;
+        }
 
         /* Print Style */
         .print-container { display: none; }
@@ -84,7 +116,7 @@
 
     <!-- Dashboard Section -->
     <div id="dashboard_section" class="container-fluid mt-2 hidden">
-        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light shadow-sm rounded no-print">
+        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-white shadow-sm rounded no-print">
             <h5 class="mb-0" id="welcome_msg">Welcome</h5>
             <div class="d-flex align-items-center">
                 <button id="notif_btn" class="btn btn-light btn-sm position-relative me-2 hidden" onclick="showNotifTab()">
@@ -97,6 +129,11 @@
 
         <!-- Nav Tabs -->
         <ul class="nav nav-tabs no-print" id="myTab" role="tablist">
+            <!-- Admin Dashboard Tab -->
+            <li class="nav-item admin-only" role="presentation">
+                <button class="nav-link active" id="dash-tab" data-bs-toggle="tab" data-bs-target="#dashTab" type="button">Dashboard</button>
+            </li>
+            
             <!-- User Only: Bill Entry -->
             <li class="nav-item user-only" role="presentation">
                 <button class="nav-link active" id="entry-tab" data-bs-toggle="tab" data-bs-target="#entryTab" type="button">Bill Entry</button>
@@ -127,8 +164,79 @@
 
         <div class="tab-content pt-2">
             
-            <!-- Tab 1: USER BILL ENTRY FORM -->
-            <div class="tab-pane fade show active" id="entryTab" role="tabpanel">
+            <!-- NEW: ADMIN DASHBOARD TAB -->
+            <div class="tab-pane fade show active" id="dashTab" role="tabpanel">
+                <div class="row mb-3">
+                    <!-- Summary Cards -->
+                    <div class="col-4">
+                        <div class="card dash-card text-white bg-dash-total h-100">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Total Bills</h6>
+                                        <h3 class="mb-0" id="dash_total_count">0</h3>
+                                    </div>
+                                    <div class="dash-icon bg-white text-primary opacity-25"><i class="bi bi-file-earmark-text"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card dash-card text-white bg-dash-pending h-100">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Pending</h6>
+                                        <h3 class="mb-0" id="dash_pending_count">0</h3>
+                                    </div>
+                                    <div class="dash-icon bg-white text-warning opacity-25"><i class="bi bi-hourglass-split"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card dash-card text-white bg-dash-approved h-100">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Approved</h6>
+                                        <h3 class="mb-0" id="dash_approved_count">0</h3>
+                                    </div>
+                                    <div class="dash-icon bg-white text-success opacity-25"><i class="bi bi-check-circle"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DA Wise Breakdown -->
+                <div class="card dash-card no-print">
+                    <div class="card-header bg-white py-2">
+                        <h6 class="mb-0"><i class="bi bi-people"></i> DA Wise Bill Status</h6>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>DA Name</th>
+                                        <th class="text-center">Total</th>
+                                        <th class="text-center text-warning">Pending</th>
+                                        <th class="text-center text-success">Approved</th>
+                                        <th class="text-end">Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash_da_table_body">
+                                    <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: USER BILL ENTRY FORM -->
+            <div class="tab-pane fade" id="entryTab" role="tabpanel">
                 <div class="bill-form-container no-print">
                     <div class="text-center mb-2">
                         <h3>MONICOPHARMA</h3>
@@ -230,9 +338,9 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Bill History -->
+            <!-- Tab: Bill History -->
             <div class="tab-pane fade" id="billTab" role="tabpanel">
-                <div class="card no-print"><div class="card-body p-1">
+                <div class="card dash-card no-print"><div class="card-body p-1">
                     <div class="table-responsive"><table class="table table-bordered table-hover table-sm">
                         <thead class="table-dark"><tr><th>Date</th><th>DA Name</th><th>Depot</th><th>Route</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
                         <tbody id="bill_table_body"><tr><td colspan="7" class="text-center">Loading...</td></tr></tbody>
@@ -240,17 +348,17 @@
                 </div></div>
             </div>
 
-            <!-- Tab 3: User Notifications -->
+            <!-- Tab: User Notifications -->
             <div class="tab-pane fade user-only" id="userNotifTab" role="tabpanel">
-                <div class="card no-print">
+                <div class="card dash-card no-print">
                     <div class="card-header py-1 bg-info text-white">My Notifications</div>
                     <div class="card-body p-0" id="user_notif_list"></div>
                 </div>
             </div>
 
-            <!-- Tab 4: User IOU List -->
+            <!-- Tab: User IOU List -->
             <div class="tab-pane fade user-only" id="iouUserTab" role="tabpanel">
-                <div class="card no-print"><div class="card-header py-1">My IOU List (Click to Auto-fill Bill)</div>
+                <div class="card dash-card no-print"><div class="card-header py-1">My IOU List (Click to Auto-fill Bill)</div>
                     <div class="card-body p-1">
                         <div class="table-responsive"><table class="table table-bordered table-hover table-sm">
                             <thead class="table-secondary"><tr><th>#</th><th>Date</th><th>Territory</th><th>MPO</th><th>Sales</th><th>Taka</th><th>Status</th></tr></thead>
@@ -260,9 +368,9 @@
                 </div>
             </div>
 
-            <!-- Tab 5: User Contact Us -->
+            <!-- Tab: User Contact Us -->
             <div class="tab-pane fade user-only" id="contactTab" role="tabpanel">
-                <div class="card no-print">
+                <div class="card dash-card no-print">
                     <div class="card-header py-1 bg-success text-white">Contact Admin</div>
                     <div class="card-body">
                         <div class="mb-2">
@@ -681,17 +789,97 @@
                 document.getElementById('entry-tab').classList.remove('active');
                 document.getElementById('entryTab').classList.remove('show', 'active');
                 
-                // Default Tab: History
-                document.getElementById('history-tab').classList.add('active');
-                document.getElementById('billTab').classList.add('show', 'active');
+                // Default Tab: Dashboard
+                document.getElementById('dash-tab').classList.add('active');
+                document.getElementById('dashTab').classList.add('show', 'active');
 
                 loadDAListForIOU();
                 loadAdminInbox(); // Load user messages
+                loadDashboardStats(); // Load Dashboard Data
             }
 
             prepareBillEntryForm();
             loadBills();
             if(currentUser.role === 'admin') loadAdminIOU();
+        }
+
+        // ================= DASHBOARD DATA LOGIC =================
+        function loadDashboardStats() {
+            database.ref('Bills').on('value', (snapshot) => {
+                let totalBills = 0;
+                let pendingBills = 0;
+                let approvedBills = 0;
+                let draftBills = 0; // Only visible to admin in dashboard count if needed, usually ignored
+                
+                const daStats = {}; // Object to store stats per DA
+
+                if(snapshot.exists()) {
+                    snapshot.forEach((depotSnapshot) => {
+                        depotSnapshot.forEach((daSnapshot) => {
+                            const daId = daSnapshot.key;
+                            const daName = daSnapshot.val(); // Need to get name from first bill or Users node
+                            
+                            // Initialize DA Object if not exists
+                            if(!daStats[daId]) {
+                                // We need the name. We can cache it from IOU list or extract from a bill
+                                daStats[daId] = { 
+                                    name: 'Unknown', 
+                                    total: 0, 
+                                    pending: 0, 
+                                    approved: 0, 
+                                    amount: 0 
+                                };
+                            }
+
+                            daSnapshot.forEach((billSnapshot) => {
+                                const bill = billSnapshot.val();
+                                // Set name from bill if available
+                                if(bill.daName) daStats[daId].name = bill.daName;
+
+                                // Count only non-draft for main totals? Or include draft?
+                                // Admin usually sees all.
+                                totalBills++;
+                                daStats[daId].total++;
+                                daStats[daId].amount += bill.totalAmount || 0;
+
+                                if(bill.status === 'red') {
+                                    pendingBills++;
+                                    daStats[daId].pending++;
+                                } else if(bill.status === 'green') {
+                                    approvedBills++;
+                                    daStats[daId].approved++;
+                                }
+                            });
+                        });
+                    });
+                }
+
+                // Update UI
+                document.getElementById('dash_total_count').innerText = totalBills;
+                document.getElementById('dash_pending_count').innerText = pendingBills;
+                document.getElementById('dash_approved_count').innerText = approvedBills;
+
+                const tbody = document.getElementById('dash_da_table_body');
+                tbody.innerHTML = '';
+                
+                const sortedDAs = Object.values(daStats).sort((a,b) => a.name.localeCompare(b.name));
+                
+                sortedDAs.forEach(da => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><i class="bi bi-person-badge me-1"></i>${da.name}</td>
+                        <td class="text-center"><span class="badge bg-primary">${da.total}</span></td>
+                        <td class="text-center"><span class="badge bg-warning text-dark">${da.pending}</span></td>
+                        <td class="text-center"><span class="badge bg-success">${da.approved}</span></td>
+                        <td class="text-end fw-bold">${da.amount.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                if(sortedDAs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">No Bills Found</td></tr>';
+                }
+            });
         }
 
         // ================= USER CONTACT ADMIN =================
@@ -1075,11 +1263,9 @@
                 document.getElementById('cancel_edit_btn').classList.remove('hidden');
                 
                 // Switch to Bill Entry Tab (For Admin, force show the tab content even if tab hidden)
-                // Since we hid the tab for admin, we manually show the content
                 document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
                 document.getElementById('entryTab').classList.add('show', 'active');
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                // We don't activate the tab pill for admin since it's hidden, but content is visible
             });
         }
 
