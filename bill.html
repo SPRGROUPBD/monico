@@ -333,8 +333,8 @@
                                     <option>Auto</option>
                                     <option>Bike</option>
                                     <option>Pickup</option>
-                                    <option>DA</option>
-                                    <option>Laber</option>
+                                    <option>Daily Allowance</option>
+                                    <option>Stand Laber</option>
                                     <option>Bike</option>
                                 </select>
                             </div>
@@ -1202,7 +1202,7 @@
                 if(bill.expenses) {
                     bill.expenses.forEach(exp => {
                         const row = tbody.insertRow();
-                        row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${exp.date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" value="${exp.from}" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" value="${exp.to}" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option ${exp.mode == 'Bus' ? 'selected' : ''}>Bus</option><option ${exp.mode == 'Rick' ? 'selected' : ''}>Rick</option><option ${exp.mode == 'CNG' ? 'selected' : ''}>CNG</option><option ${exp.mode == 'Auto' ? 'selected' : ''}>Auto</option><option ${exp.mode == 'Bike' ? 'selected' : ''}>Bike</option><option ${exp.mode == '-' ? 'selected' : ''}>DA</option><option ${exp.mode == 'Pickup' ? 'selected' : ''}>Pickup</option><option ${exp.mode == 'Van' ? 'selected' : ''}>Van</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" value="${exp.amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" value="${exp.da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" value="${(parseFloat(exp.amount)||0) + (parseFloat(exp.da)||0)}" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
+                        row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${exp.date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" value="${exp.from}" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" value="${exp.to}" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option ${exp.mode == 'Bus' ? 'selected' : ''}>Bus</option><option ${exp.mode == 'Rick' ? 'selected' : ''}>Rick</option><option ${exp.mode == 'CNG' ? 'selected' : ''}>CNG</option><option ${exp.mode == 'Auto' ? 'selected' : ''}>Auto</option><option ${exp.mode == 'Bike' ? 'selected' : ''}>Bike</option><option ${exp.mode == 'Daily Allowance' ? 'selected' : ''}>DA</option><option ${exp.mode == 'Pickup' ? 'selected' : ''}>Pickup</option><option ${exp.mode == 'Stand Laber' ? 'selected' : ''}>Stand Laber</option><option ${exp.mode == 'Van' ? 'selected' : ''}>Van</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" value="${exp.amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" value="${exp.da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" value="${(parseFloat(exp.amount)||0) + (parseFloat(exp.da)||0)}" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
                     });
                 }
                 calculateGrandTotal(); calculateSoldValue(); editingBillId = billId;
@@ -1537,3 +1537,4 @@
     </script>
 </body>
 </html>
+
