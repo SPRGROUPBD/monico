@@ -330,6 +330,11 @@
                                     <option>CNG</option>
                                     <option>Train</option>
                                     <option>Van</option>
+                                    <option>Auto</option>
+                                    <option>Bike</option>
+                                    <option>Pickup</option>
+                                    <option>DA</option>
+                                    <option>Laber</option>
                                     <option>Bike</option>
                                 </select>
                             </div>
@@ -782,6 +787,13 @@
                                 <option ${exp.mode == 'Bus' ? 'selected' : ''}>Bus</option>
                                 <option ${exp.mode == 'Rick' ? 'selected' : ''}>Rick</option>
                                 <option ${exp.mode == 'CNG' ? 'selected' : ''}>CNG</option>
+                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
+                                <option ${exp.mode == 'Van' ? 'selected' : ''}>Van</option>
+                                <option ${exp.mode == 'Bike' ? 'selected' : ''}>Bike</option>
+                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
+                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
+                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
+                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
                                 <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
                             </select></td>
                             <td><input type="number" class="form-control form-control-sm exp-amount" value="${exp.amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td>
