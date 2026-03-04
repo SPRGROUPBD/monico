@@ -104,7 +104,6 @@
             .form-control, .form-select { font-size: 0.85rem; }
             h3 { font-size: 1.2rem; } h5 { font-size: 1rem; }
 
-            /* Table Mobile Fit */
             #expense_table_body input, 
             #expense_table_body select {
                 font-size: 11px; 
@@ -115,16 +114,13 @@
                 padding: 0.1rem 0.3rem;
                 font-size: 10px;
             }
-            /* Ensure From/To columns have decent width */
             #expense_table_body th:nth-child(2), #expense_table_body td:nth-child(2),
             #expense_table_body th:nth-child(3), #expense_table_body td:nth-child(3) {
                 min-width: 75px;
             }
-            /* Date and Mode */
             #expense_table_body th:nth-child(1), #expense_table_body td:nth-child(1) { min-width: 95px; }
             #expense_table_body th:nth-child(4), #expense_table_body td:nth-child(4) { min-width: 60px; }
             
-            /* Quick Entry Mobile Grid Fix */
             .quick-entry-card .row.g-1 > div {
                 margin-bottom: 5px;
             }
@@ -160,39 +156,27 @@
 
         <!-- Nav Tabs -->
         <ul class="nav nav-tabs no-print" id="myTab" role="tablist">
-            <!-- Admin Dashboard Tab -->
             <li class="nav-item admin-only" role="presentation">
                 <button class="nav-link" id="dash-tab" data-bs-toggle="tab" data-bs-target="#dashTab" type="button">Dashboard</button>
             </li>
-            
-            <!-- User Only: Bill Entry -->
             <li class="nav-item user-only" role="presentation">
                 <button class="nav-link" id="entry-tab" data-bs-toggle="tab" data-bs-target="#entryTab" type="button">Bill Entry</button>
             </li>
-            
-            <!-- Common: History -->
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#billTab" type="button">History</button>
             </li>
-            
-            <!-- Admin Only Approved Bill Summary Tab -->
             <li class="nav-item admin-only" role="presentation">
                 <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approvedTab" type="button">Approved Bill</button>
             </li>
-
-            <!-- User Specific Tabs -->
             <li class="nav-item user-only" role="presentation">
                 <button class="nav-link" id="user_notif-tab" data-bs-toggle="tab" data-bs-target="#userNotifTab" type="button">Notifications</button>
             </li>
             <li class="nav-item user-only" role="presentation">
                 <button class="nav-link" id="iou_user-tab" data-bs-toggle="tab" data-bs-target="#iouUserTab" type="button">My IOU</button>
             </li>
-             <!-- User Specific: Contact Us -->
             <li class="nav-item user-only" role="presentation">
                 <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contactTab" type="button">Contact Us</button>
             </li>
-
-            <!-- Admin Specific Tabs: Management -->
             <li class="nav-item admin-only" role="presentation">
                 <button class="nav-link" id="mgmt-tab" data-bs-toggle="tab" data-bs-target="#mgmtTab" type="button">Management</button>
             </li>
@@ -203,7 +187,6 @@
             <!-- ADMIN DASHBOARD TAB -->
             <div class="tab-pane fade admin-only" id="dashTab" role="tabpanel">
                 <div class="row mb-3">
-                    <!-- Summary Cards -->
                     <div class="col-4">
                         <div class="card dash-card text-white bg-dash-total h-100">
                             <div class="card-body py-2">
@@ -244,8 +227,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- DA Wise Breakdown -->
                 <div class="card dash-card no-print">
                     <div class="card-header bg-white py-2">
                         <h6 class="mb-0"><i class="bi bi-people"></i> DA Wise Bill Status</h6>
@@ -322,7 +303,6 @@
                                 <label>To</label>
                                 <input type="text" id="q_to" class="form-control form-control-sm" placeholder="To">
                             </div>
-                            <!-- UPDATED MODE LIST HERE -->
                             <div class="col-4">
                                 <label>Mode</label>
                                 <select id="q_mode" class="form-select form-select-sm">
@@ -369,9 +349,12 @@
                         <span id="auto_save_status" class="text-muted align-self-center me-auto"></span>
                         
                         <button onclick="addExpenseRow()" class="btn btn-secondary btn-sm">+ Row</button>
+                        <!-- NEW CLEAR DATA BUTTON -->
+                        <button onclick="clearBillForm()" class="btn btn-danger btn-sm">Clear Data</button>
+                        
                         <button id="draft_btn" onclick="submitOrUpdateBill('draft')" class="btn btn-secondary btn-sm">Save Draft</button>
                         <button id="main_submit_btn" onclick="submitOrUpdateBill('red')" class="btn btn-success btn-sm">Submit Bill</button>
-                        <button id="cancel_edit_btn" onclick="cancelEdit()" class="btn btn-danger btn-sm hidden">Cancel</button>
+                        <button id="cancel_edit_btn" onclick="cancelEdit()" class="btn btn-warning btn-sm hidden">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -448,8 +431,6 @@
 
             <!-- Admin Tab: Management -->
             <div class="tab-pane fade admin-only" id="mgmtTab" role="tabpanel">
-                
-                <!-- Section 1: User Messages -->
                 <div class="mgmt-section">
                     <div class="mgmt-header" data-bs-toggle="collapse" data-bs-target="#mgmtMsgBody">
                         <i class="bi bi-envelope"></i> User Messages
@@ -464,7 +445,6 @@
                     </div>
                 </div>
 
-                <!-- Section 2: IOU Entry -->
                 <div class="mgmt-section">
                     <div class="mgmt-header" data-bs-toggle="collapse" data-bs-target="#mgmtIouBody">
                         <i class="bi bi-cash-stack"></i> IOU Entry
@@ -485,7 +465,6 @@
                             <button id="iou_save_btn" onclick="saveIOU()" class="btn btn-success btn-sm w-100 mb-2">Save IOU Entry</button>
                             <button id="iou_cancel_btn" onclick="cancelIOUEdit()" class="btn btn-secondary btn-sm w-100 mb-2 hidden">Cancel Edit</button>
                             
-                            <!-- FILTER SECTION -->
                             <div class="row g-2 mb-2 p-2 bg-light border rounded align-items-end">
                                 <div class="col-6 col-md-3">
                                     <label class="fw-bold text-muted">From Date</label>
@@ -517,7 +496,6 @@
                     </div>
                 </div>
 
-                <!-- Section 3: Send Notification -->
                 <div class="mgmt-section">
                     <div class="mgmt-header" data-bs-toggle="collapse" data-bs-target="#mgmtNotifBody">
                         <i class="bi bi-megaphone"></i> Send Notification
@@ -532,7 +510,6 @@
                     </div>
                 </div>
 
-                <!-- Section 4: NEW USER RECORD -->
                 <div class="mgmt-section">
                     <div class="mgmt-header" data-bs-toggle="collapse" data-bs-target="#mgmtAddBody">
                         <i class="bi bi-person-plus"></i> New User Record
@@ -540,7 +517,6 @@
                     <div id="mgmtAddBody" class="collapse">
                         <div class="mgmt-body">
                              <div class="row g-2">
-                                 <!-- User Information -->
                                 <div class="col-md-6">
                                     <label class="fw-bold text-muted">ID (Manual)</label>
                                     <input type="text" id="new_user_id" class="form-control form-control-sm" placeholder="e.g. DA-001">
@@ -589,7 +565,7 @@
         </div>
     </div>
 
-    <!-- Cut Bill Modal (Admin Only) -->
+    <!-- Cut Bill Modal -->
     <div class="modal fade no-print" id="cutBillModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -779,7 +755,6 @@
                     data.expenses.forEach(exp => {
                         const today = exp.date || document.getElementById('form_dep_date').value;
                         const row = tbody.insertRow();
-                        // UPDATED MODE LIST IN DRAFT LOAD
                         row.innerHTML = `
                             <td><input type="date" class="form-control form-control-sm exp-date" value="${exp.date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td>
                             <td><input type="text" class="form-control form-control-sm exp-from" value="${exp.from}" oninput="triggerAutoSave()"></td>
@@ -816,6 +791,44 @@
             document.getElementById('auto_save_status').innerText = "";
         }
 
+        // ================= NEW: CLEAR BILL FORM FUNCTION =================
+        function clearBillForm() {
+            if(confirm("Are you sure you want to clear all data?")) {
+                editingBillId = null; editingBillDaId = null; originalIouId = null; currentIouId = null;
+                
+                document.getElementById('main_submit_btn').innerText = "Submit Bill";
+                document.getElementById('main_submit_btn').classList.add('btn-success'); 
+                document.getElementById('main_submit_btn').classList.remove('btn-warning');
+                document.getElementById('cancel_edit_btn').classList.add('hidden');
+                
+                document.getElementById('form_route').value = ''; 
+                document.getElementById('form_mpo').value = ''; 
+                document.getElementById('form_summary').value = '';
+                document.getElementById('form_invoice_val').value = ''; 
+                document.getElementById('form_return_val').value = 0; 
+                document.getElementById('form_invoice_qty').value = '';
+                
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('form_dep_date').value = today;
+                document.getElementById('form_ret_date').value = today;
+                document.getElementById('form_submit_date').value = today;
+                
+                document.getElementById('expense_table_body').innerHTML = '';
+                document.getElementById('grand_total').value = '0'; 
+                document.getElementById('form_cost_percent').innerText = '0%';
+                
+                calculateSoldValue(); 
+                clearLocalDraft();
+                
+                if(currentUser && currentUser.role !== 'admin') {
+                     document.getElementById('form_da_name').value = currentUser.name;
+                     document.getElementById('form_depot').value = currentUser.depot;
+                }
+                
+                document.getElementById('auto_save_status').innerText = "Form Cleared";
+            }
+        }
+
         // ================= DATE FORMATTER =================
         function formatDate(dateStr) {
             if (!dateStr) return '';
@@ -829,14 +842,12 @@
             const userVal = document.getElementById('username').value;
             const passVal = document.getElementById('password').value;
 
-            // Hardcoded Admin Check
             if (userVal === 'KS' && passVal === 'Monico@Ku007') {
                 currentUser = { name: 'Admin', role: 'admin', depot: 'all', id: 'admin_001' };
                 showDashboard();
                 return;
             }
 
-            // DB User Check
             const userRef = database.ref('Users');
             userRef.orderByChild('username').equalTo(userVal).once('value', (snapshot) => {
                 if (snapshot.exists()) {
@@ -880,21 +891,17 @@
             resetAllTabs();
 
             if(currentUser.role !== 'admin') {
-                // USER VIEW
                 document.querySelectorAll('.user-only').forEach(item => item.style.display = 'block');
                 document.getElementById('notif_btn').classList.remove('hidden');
                 loadUserNotifications();
                 
-                // Default Tab: Bill Entry
                 document.getElementById('entry-tab').classList.add('active');
                 document.getElementById('entryTab').classList.add('show', 'active');
                 
                 loadUserIOU();
             } else {
-                // ADMIN VIEW
                 document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'block');
                 
-                // Default Tab: Dashboard
                 document.getElementById('dash-tab').classList.add('active');
                 document.getElementById('dashTab').classList.add('show', 'active');
 
@@ -1101,10 +1108,14 @@
             const amount = document.getElementById('q_amount').value;
             const da = document.getElementById('q_da_expense').value;
             const date = document.getElementById('form_dep_date').value; 
-            if(!from && !to) { alert("Enter From/To"); return; }
+            
+            const modesWithoutRoute = ['Daily Allowance', 'Labour Bill'];
+            if (!modesWithoutRoute.includes(mode)) {
+                if(!from && !to) { alert("Enter From/To"); return; }
+            }
+            
             const tbody = document.getElementById('expense_table_body');
             const row = tbody.insertRow();
-            // UPDATED MODE LIST IN QUICK ENTRY
             row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" value="${from}" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" value="${to}" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option ${mode == 'Rickshaw' ? 'selected' : ''}>Rickshaw</option><option ${mode == 'Auto' ? 'selected' : ''}>Auto</option><option ${mode == 'Bus' ? 'selected' : ''}>Bus</option><option ${mode == 'CNG' ? 'selected' : ''}>CNG</option><option ${mode == 'Van' ? 'selected' : ''}>Van</option><option ${mode == 'Motorcycle' ? 'selected' : ''}>Motorcycle</option><option ${mode == 'Tempo' ? 'selected' : ''}>Tempo</option><option ${mode == 'Pickup' ? 'selected' : ''}>Pickup</option><option ${mode == 'Daily Allowance' ? 'selected' : ''}>Daily Allowance</option><option ${mode == 'Labour Bill' ? 'selected' : ''}>Labour Bill</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" value="${amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" value="${da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" value="${(parseFloat(amount)||0) + (parseFloat(da)||0)}" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
             calculateGrandTotal(); triggerAutoSave();
             document.getElementById('q_from').value = ''; document.getElementById('q_to').value = ''; document.getElementById('q_amount').value = ''; document.getElementById('q_da_expense').value = ''; document.getElementById('q_from').focus();
@@ -1114,7 +1125,6 @@
             const tbody = document.getElementById('expense_table_body');
             const today = document.getElementById('form_dep_date').value || new Date().toISOString().split('T')[0];
             const row = tbody.insertRow();
-            // UPDATED MODE LIST IN MANUAL ROW
             row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${today}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option>Rickshaw</option><option>Auto</option><option>Bus</option><option>CNG</option><option>Van</option><option>Motorcycle</option><option>Tempo</option><option>Pickup</option><option>Daily Allowance</option><option>Labour Bill</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
             triggerAutoSave();
         }
@@ -1204,7 +1214,6 @@
                 if(bill.expenses) {
                     bill.expenses.forEach(exp => {
                         const row = tbody.insertRow();
-                        // UPDATED MODE LIST IN EDIT BILL
                         row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${exp.date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" value="${exp.from}" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" value="${exp.to}" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option ${exp.mode == 'Rickshaw' ? 'selected' : ''}>Rickshaw</option><option ${exp.mode == 'Auto' ? 'selected' : ''}>Auto</option><option ${exp.mode == 'Bus' ? 'selected' : ''}>Bus</option><option ${exp.mode == 'CNG' ? 'selected' : ''}>CNG</option><option ${exp.mode == 'Van' ? 'selected' : ''}>Van</option><option ${exp.mode == 'Motorcycle' ? 'selected' : ''}>Motorcycle</option><option ${exp.mode == 'Tempo' ? 'selected' : ''}>Tempo</option><option ${exp.mode == 'Pickup' ? 'selected' : ''}>Pickup</option><option ${exp.mode == 'Daily Allowance' ? 'selected' : ''}>Daily Allowance</option><option ${exp.mode == 'Labour Bill' ? 'selected' : ''}>Labour Bill</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" value="${exp.amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" value="${exp.da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" value="${(parseFloat(exp.amount)||0) + (parseFloat(exp.da)||0)}" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
                     });
                 }
@@ -1338,7 +1347,7 @@
             triggerAutoSave(); document.getElementById('entry-tab').click(); alert("Form Auto-filled!");
         }
 
-        // ================= BILL HISTORY LOGIC (UPDATED) =================
+        // ================= BILL HISTORY LOGIC =================
         function loadBills() {
             const tableBody = document.getElementById('bill_table_body');
             tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Loading...</td></tr>';
@@ -1355,9 +1364,7 @@
                             const billId = billSnapshot.key;
                             const daId = bill.daId;
 
-                            // User Filter: Only own bills
                             if (currentUser.role === 'user' && bill.daId !== currentUser.id) return;
-                            // Admin Filter: Hide drafts
                             if (currentUser.role === 'admin' && bill.status === 'draft') return;
 
                             const tr = document.createElement('tr');
@@ -1365,18 +1372,15 @@
                             else if (bill.status === 'red') tr.classList.add('status-red');
                             else tr.classList.add('status-green');
 
-                            // Amount Logic Split
                             let amtHtml = '';
                             const deductedVal = bill.deduction || 0;
                             const originalAmount = bill.totalAmount + deductedVal;
 
                             if (currentUser.role === 'admin') {
-                                // ADMIN: Show Cut/Deduction logic
                                 if (deductedVal > 0) {
                                     amtHtml = `<span class="cut-amount">${originalAmount}</span> <span class="payable-amount">${bill.totalAmount}</span>`;
                                 } else amtHtml = bill.totalAmount;
                             } else {
-                                // USER: Show Original Amount only (No deduction info)
                                 amtHtml = originalAmount;
                             }
 
@@ -1385,20 +1389,20 @@
                             
                             let actionBtns = '';
                             
-                            // Permission Logic
                             if (currentUser.role === 'admin') {
-                                // Admin Actions
                                 actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button> `;
                                 actionBtns += `<button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button> `;
                                 actionBtns += `<button class="btn btn-danger btn-sm" onclick="deleteBill('${billId}', '${bill.depot}', '${daId}')">Del</button> `;
                                 if (bill.status === 'red') actionBtns += `<button class="btn btn-secondary btn-sm" onclick="openCutModal('${billId}', '${bill.depot}', '${daId}', ${bill.totalAmount})">Cut</button>`;
                             } else {
-                                // User Actions
-                                // NO PRINT BUTTON
+                                // USER ACTIONS
+                                // User can Print Pending ('red') and Draft ('draft') bills
                                 if (bill.status === 'red' || bill.status === 'draft') {
-                                    actionBtns = `<button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button> `;
+                                    actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button> `;
+                                    actionBtns += `<button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button> `;
                                     actionBtns += `<button class="btn btn-danger btn-sm" onclick="deleteBill('${billId}', '${bill.depot}', '${daId}')">Del</button>`;
                                 }
+                                // Approved ('green') bills usually don't need user action or print as per previous request context
                             }
 
                             const showDate = bill.submitDate || bill.depDate;
