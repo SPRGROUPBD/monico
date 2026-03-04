@@ -322,20 +322,20 @@
                                 <label>To</label>
                                 <input type="text" id="q_to" class="form-control form-control-sm" placeholder="To">
                             </div>
+                            <!-- UPDATED MODE LIST HERE -->
                             <div class="col-4">
                                 <label>Mode</label>
                                 <select id="q_mode" class="form-select form-select-sm">
-                                    <option>Bus</option>
-                                    <option>Rick</option>
-                                    <option>CNG</option>
-                                    <option>Train</option>
-                                    <option>Van</option>
+                                    <option>Rickshaw</option>
                                     <option>Auto</option>
-                                    <option>Bike</option>
+                                    <option>Bus</option>
+                                    <option>CNG</option>
+                                    <option>Van</option>
+                                    <option>Motorcycle</option>
+                                    <option>Tempo</option>
                                     <option>Pickup</option>
                                     <option>Daily Allowance</option>
-                                    <option>Stand Laber</option>
-                                    <option>Bike</option>
+                                    <option>Labour Bill</option>
                                 </select>
                             </div>
                             <div class="col-4">
@@ -779,22 +779,22 @@
                     data.expenses.forEach(exp => {
                         const today = exp.date || document.getElementById('form_dep_date').value;
                         const row = tbody.insertRow();
+                        // UPDATED MODE LIST IN DRAFT LOAD
                         row.innerHTML = `
                             <td><input type="date" class="form-control form-control-sm exp-date" value="${exp.date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td>
                             <td><input type="text" class="form-control form-control-sm exp-from" value="${exp.from}" oninput="triggerAutoSave()"></td>
                             <td><input type="text" class="form-control form-control-sm exp-to" value="${exp.to}" oninput="triggerAutoSave()"></td>
                             <td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()">
+                                <option ${exp.mode == 'Rickshaw' ? 'selected' : ''}>Rickshaw</option>
+                                <option ${exp.mode == 'Auto' ? 'selected' : ''}>Auto</option>
                                 <option ${exp.mode == 'Bus' ? 'selected' : ''}>Bus</option>
-                                <option ${exp.mode == 'Rick' ? 'selected' : ''}>Rick</option>
                                 <option ${exp.mode == 'CNG' ? 'selected' : ''}>CNG</option>
-                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
                                 <option ${exp.mode == 'Van' ? 'selected' : ''}>Van</option>
-                                <option ${exp.mode == 'Bike' ? 'selected' : ''}>Bike</option>
-                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
-                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
-                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
-                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
-                                <option ${exp.mode == 'Train' ? 'selected' : ''}>Train</option>
+                                <option ${exp.mode == 'Motorcycle' ? 'selected' : ''}>Motorcycle</option>
+                                <option ${exp.mode == 'Tempo' ? 'selected' : ''}>Tempo</option>
+                                <option ${exp.mode == 'Pickup' ? 'selected' : ''}>Pickup</option>
+                                <option ${exp.mode == 'Daily Allowance' ? 'selected' : ''}>Daily Allowance</option>
+                                <option ${exp.mode == 'Labour Bill' ? 'selected' : ''}>Labour Bill</option>
                             </select></td>
                             <td><input type="number" class="form-control form-control-sm exp-amount" value="${exp.amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td>
                             <td><input type="number" class="form-control form-control-sm exp-da" value="${exp.da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td>
@@ -905,7 +905,7 @@
             }
 
             prepareBillEntryForm();
-            loadBills(); // Call the updated loadBills
+            loadBills(); 
             if(currentUser.role === 'admin') loadAdminIOU();
         }
 
@@ -1104,7 +1104,8 @@
             if(!from && !to) { alert("Enter From/To"); return; }
             const tbody = document.getElementById('expense_table_body');
             const row = tbody.insertRow();
-            row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" value="${from}" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" value="${to}" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option ${mode == 'Bus' ? 'selected' : ''}>Bus</option><option ${mode == 'Rick' ? 'selected' : ''}>Rick</option><option ${mode == 'CNG' ? 'selected' : ''}>CNG</option><option ${mode == 'Train' ? 'selected' : ''}>Train</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" value="${amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" value="${da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" value="${(parseFloat(amount)||0) + (parseFloat(da)||0)}" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
+            // UPDATED MODE LIST IN QUICK ENTRY
+            row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" value="${from}" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" value="${to}" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option ${mode == 'Rickshaw' ? 'selected' : ''}>Rickshaw</option><option ${mode == 'Auto' ? 'selected' : ''}>Auto</option><option ${mode == 'Bus' ? 'selected' : ''}>Bus</option><option ${mode == 'CNG' ? 'selected' : ''}>CNG</option><option ${mode == 'Van' ? 'selected' : ''}>Van</option><option ${mode == 'Motorcycle' ? 'selected' : ''}>Motorcycle</option><option ${mode == 'Tempo' ? 'selected' : ''}>Tempo</option><option ${mode == 'Pickup' ? 'selected' : ''}>Pickup</option><option ${mode == 'Daily Allowance' ? 'selected' : ''}>Daily Allowance</option><option ${mode == 'Labour Bill' ? 'selected' : ''}>Labour Bill</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" value="${amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" value="${da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" value="${(parseFloat(amount)||0) + (parseFloat(da)||0)}" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
             calculateGrandTotal(); triggerAutoSave();
             document.getElementById('q_from').value = ''; document.getElementById('q_to').value = ''; document.getElementById('q_amount').value = ''; document.getElementById('q_da_expense').value = ''; document.getElementById('q_from').focus();
         }
@@ -1113,7 +1114,8 @@
             const tbody = document.getElementById('expense_table_body');
             const today = document.getElementById('form_dep_date').value || new Date().toISOString().split('T')[0];
             const row = tbody.insertRow();
-            row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${today}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option>Bus</option><option>Rick</option><option>Auto</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
+            // UPDATED MODE LIST IN MANUAL ROW
+            row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${today}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option>Rickshaw</option><option>Auto</option><option>Bus</option><option>CNG</option><option>Van</option><option>Motorcycle</option><option>Tempo</option><option>Pickup</option><option>Daily Allowance</option><option>Labour Bill</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
             triggerAutoSave();
         }
 
@@ -1202,7 +1204,8 @@
                 if(bill.expenses) {
                     bill.expenses.forEach(exp => {
                         const row = tbody.insertRow();
-                        row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${exp.date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" value="${exp.from}" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" value="${exp.to}" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option ${exp.mode == 'Bus' ? 'selected' : ''}>Bus</option><option ${exp.mode == 'Rick' ? 'selected' : ''}>Rick</option><option ${exp.mode == 'CNG' ? 'selected' : ''}>CNG</option><option ${exp.mode == 'Auto' ? 'selected' : ''}>Auto</option><option ${exp.mode == 'Bike' ? 'selected' : ''}>Bike</option><option ${exp.mode == 'Daily Allowance' ? 'selected' : ''}>DA</option><option ${exp.mode == 'Pickup' ? 'selected' : ''}>Pickup</option><option ${exp.mode == 'Stand Laber' ? 'selected' : ''}>Stand Laber</option><option ${exp.mode == 'Van' ? 'selected' : ''}>Van</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" value="${exp.amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" value="${exp.da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" value="${(parseFloat(exp.amount)||0) + (parseFloat(exp.da)||0)}" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
+                        // UPDATED MODE LIST IN EDIT BILL
+                        row.innerHTML = `<td><input type="date" class="form-control form-control-sm exp-date" value="${exp.date}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-from" value="${exp.from}" oninput="triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-to" value="${exp.to}" oninput="triggerAutoSave()"></td><td><select class="form-select form-select-sm exp-mode" onchange="triggerAutoSave()"><option ${exp.mode == 'Rickshaw' ? 'selected' : ''}>Rickshaw</option><option ${exp.mode == 'Auto' ? 'selected' : ''}>Auto</option><option ${exp.mode == 'Bus' ? 'selected' : ''}>Bus</option><option ${exp.mode == 'CNG' ? 'selected' : ''}>CNG</option><option ${exp.mode == 'Van' ? 'selected' : ''}>Van</option><option ${exp.mode == 'Motorcycle' ? 'selected' : ''}>Motorcycle</option><option ${exp.mode == 'Tempo' ? 'selected' : ''}>Tempo</option><option ${exp.mode == 'Pickup' ? 'selected' : ''}>Pickup</option><option ${exp.mode == 'Daily Allowance' ? 'selected' : ''}>Daily Allowance</option><option ${exp.mode == 'Labour Bill' ? 'selected' : ''}>Labour Bill</option></select></td><td><input type="number" class="form-control form-control-sm exp-amount" value="${exp.amount}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="number" class="form-control form-control-sm exp-da" value="${exp.da}" oninput="calculateRowTotal(this); triggerAutoSave()"></td><td><input type="text" class="form-control form-control-sm exp-total" value="${(parseFloat(exp.amount)||0) + (parseFloat(exp.da)||0)}" readonly></td><td><button class="btn btn-danger btn-sm" onclick="removeRow(this)">X</button></td>`;
                     });
                 }
                 calculateGrandTotal(); calculateSoldValue(); editingBillId = billId;
@@ -1537,4 +1540,3 @@
     </script>
 </body>
 </html>
-
