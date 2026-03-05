@@ -291,7 +291,9 @@
                     </div>
                     
                     <div class="row mb-2">
-                        <div class="col-6"><label>Invoice Qty:</label><input type="number" id="form_invoice_qty" class="form-control form-control-sm" oninput="triggerAutoSave()"></div>
+                        <div class="col-4"><label>Invoice Qty:</label><input type="number" id="form_invoice_qty" class="form-control form-control-sm" oninput="triggerAutoSave()"></div>
+                        <!-- ADDED: Bundle Qty Input in Bill Form -->
+                        <div class="col-4"><label>Bundle Qty:</label><input type="number" id="form_bundle_qty" class="form-control form-control-sm" oninput="triggerAutoSave()"></div>
                     </div>
 
                     <!-- QUICK ENTRY SECTION -->
@@ -467,6 +469,8 @@
                                 <div class="col-4 col-md-1"><label>Sold</label><input type="number" id="iou_sold" class="form-control form-control-sm" readonly></div>
                                 
                                 <div class="col-4 col-md-1"><label>Inv Qty</label><input type="number" id="iou_qty" class="form-control form-control-sm"></div>
+                                <!-- ADDED: Bundle Qty Input in Admin IOU Form -->
+                                <div class="col-4 col-md-1"><label>Bund Qty</label><input type="number" id="iou_bundle_qty" class="form-control form-control-sm"></div>
                                 <div class="col-4 col-md-1"><label>Taka</label><input type="number" id="iou_taka" class="form-control form-control-sm" oninput="calcIouPercent()"></div>
                                 <div class="col-4 col-md-1"><label>%</label><input type="text" id="iou_percent" class="form-control form-control-sm" readonly></div>
                             </div>
@@ -496,10 +500,10 @@
 
                             <div class="table-responsive"><table class="table table-bordered table-sm">
                                 <thead class="table-secondary">
-                                    <tr><th>#</th><th>Date</th><th>DA Name</th><th>Territory</th><th>MPO</th><th>Summary</th><th>Sales</th><th>Ret</th><th>Sold</th><th>Qty</th><th>Taka</th><th>%</th><th>Action</th></tr>
+                                    <tr><th>#</th><th>Date</th><th>DA Name</th><th>Territory</th><th>MPO</th><th>Summary</th><th>Sales</th><th>Ret</th><th>Sold</th><th>Qty</th><th>Bund Qty</th><th>Taka</th><th>%</th><th>Action</th></tr>
                                 </thead>
                                 <tbody id="iou_admin_table_body"></tbody>
-                                <tfoot><tr class="fw-bold table-warning"><td colspan="6">Filtered Total</td><td id="iou_tot_sales">0</td><td id="iou_tot_ret">0</td><td id="iou_tot_sold">0</td><td id="iou_tot_qty">0</td><td id="iou_tot_taka">0</td><td></td><td></td></tr></tfoot>
+                                <tfoot><tr class="fw-bold table-warning"><td colspan="6">Filtered Total</td><td id="iou_tot_sales">0</td><td id="iou_tot_ret">0</td><td id="iou_tot_sold">0</td><td id="iou_tot_qty">0</td><td id="iou_tot_bqty">0</td><td id="iou_tot_taka">0</td><td></td><td></td></tr></tfoot>
                             </table></div>
                         </div>
                     </div>
@@ -616,10 +620,14 @@
             </tr>
             <tr><td colspan="3" style="text-align: left; padding: 3px;"><strong>Route:</strong> <span id="p_route"></span></td></tr>
             <tr><td colspan="3" style="text-align: left; padding: 3px;"><strong>Name of MPO:</strong> <span id="p_mpo"></span></td></tr>
+            
+            <!-- UPDATED: Invoice Value Center, Bundle Qty Right -->
             <tr>
                 <td style="text-align: left; padding: 3px;"><strong>Summary No:</strong> <span id="p_summary"></span></td>
-                <td colspan="2" style="text-align: center; padding: 3px;"><strong>Invoice Value:</strong> <span id="p_inv_val"></span></td>
+                <td style="text-align: center; padding: 3px;"><strong>Invoice Value:</strong> <span id="p_inv_val"></span></td>
+                <td style="text-align: right; padding: 3px;"><strong>Bundle Qty:</strong> <span id="p_bundle_qty"></span></td>
             </tr>
+            
             <tr>
                 <td style="text-align: left; padding: 3px;"><strong>Return Value:</strong> <span id="p_ret_val"></span></td>
                 <td style="text-align: center; padding: 3px;"><strong>Sold Value:</strong> <span id="p_sold_val"></span></td>
@@ -719,6 +727,8 @@
                 invoiceVal: document.getElementById('form_invoice_val').value,
                 returnVal: document.getElementById('form_return_val').value,
                 invoiceQty: document.getElementById('form_invoice_qty').value,
+                // ADDED: Bundle Qty to Draft
+                bundleQty: document.getElementById('form_bundle_qty').value,
                 iouId: currentIouId,
                 iouAmount: document.getElementById('form_iou_amount').value, 
                 expenses: []
@@ -755,6 +765,8 @@
                 document.getElementById('form_invoice_val').value = data.invoiceVal || '';
                 document.getElementById('form_return_val').value = data.returnVal || 0;
                 document.getElementById('form_invoice_qty').value = data.invoiceQty || '';
+                // ADDED: Load Bundle Qty from Draft
+                document.getElementById('form_bundle_qty').value = data.bundleQty || '';
                 document.getElementById('form_iou_amount').value = data.iouAmount || 0; 
                 
                 currentIouId = data.iouId || null;
@@ -820,6 +832,8 @@
                 document.getElementById('form_invoice_val').value = ''; 
                 document.getElementById('form_return_val').value = 0; 
                 document.getElementById('form_invoice_qty').value = '';
+                // ADDED: Clear Bundle Qty
+                document.getElementById('form_bundle_qty').value = '';
                 document.getElementById('form_iou_amount').value = 0; 
                 
                 const today = new Date().toISOString().split('T')[0];
@@ -1187,6 +1201,8 @@
                 route: document.getElementById('form_route').value, mpo: document.getElementById('form_mpo').value, summaryNo: document.getElementById('form_summary').value,
                 invoiceVal: parseFloat(document.getElementById('form_invoice_val').value) || 0, returnVal: parseFloat(document.getElementById('form_return_val').value) || 0,
                 soldVal: parseFloat(document.getElementById('form_sold_val').value) || 0, invoiceQty: parseInt(document.getElementById('form_invoice_qty').value) || 0,
+                // ADDED: Save Bundle Qty
+                bundleQty: parseInt(document.getElementById('form_bundle_qty').value) || 0,
                 totalAmount: grandTotal, 
                 originalAmount: grandTotal, 
                 status: statusType, timestamp: Date.now(), 
@@ -1216,6 +1232,8 @@
                         processIOU(); clearLocalDraft(); alert(statusType === 'draft' ? "Draft Saved!" : "Submitted!");
                         document.getElementById('form_route').value = ''; document.getElementById('form_mpo').value = ''; document.getElementById('form_summary').value = '';
                         document.getElementById('form_invoice_val').value = ''; document.getElementById('form_return_val').value = 0; document.getElementById('form_invoice_qty').value = '';
+                        // ADDED: Clear Bundle Qty after submit
+                        document.getElementById('form_bundle_qty').value = '';
                         document.getElementById('grand_total').value = '0'; document.getElementById('form_cost_percent').innerText = '0%'; document.getElementById('expense_table_body').innerHTML = '';
                         document.getElementById('form_iou_amount').value = 0; 
                         calculateSoldValue(); currentIouId = null; originalIouId = null; prepareBillEntryForm(); document.getElementById('history-tab').click();
@@ -1235,6 +1253,8 @@
                 document.getElementById('form_mpo').value = bill.mpo; document.getElementById('form_summary').value = bill.summaryNo;
                 document.getElementById('form_invoice_val').value = bill.invoiceVal; document.getElementById('form_return_val').value = bill.returnVal;
                 document.getElementById('form_invoice_qty').value = bill.invoiceQty;
+                // ADDED: Load Bundle Qty on Edit
+                document.getElementById('form_bundle_qty').value = bill.bundleQty || 0;
                 document.getElementById('form_iou_amount').value = bill.iouAmount || 0; 
                 
                 const tbody = document.getElementById('expense_table_body'); tbody.innerHTML = '';
@@ -1328,6 +1348,8 @@
                 returnVal: returnVal, // Save Return
                 soldVal: soldVal, // Save Sold
                 qty: parseInt(document.getElementById('iou_qty').value) || 0,
+                // ADDED: Save Bundle Qty
+                bundleQty: parseInt(document.getElementById('iou_bundle_qty').value) || 0,
                 taka: parseFloat(document.getElementById('iou_taka').value) || 0, 
                 percent: document.getElementById('iou_percent').value, status: 'active'
             };
@@ -1339,7 +1361,10 @@
             document.getElementById('iou_date').value = ''; document.getElementById('iou_da_name').value = ''; document.getElementById('iou_territory').value = '';
             document.getElementById('iou_mpo').value = ''; document.getElementById('iou_summary').value = ''; document.getElementById('iou_sales').value = '';
             document.getElementById('iou_return').value = ''; document.getElementById('iou_sold').value = '';
-            document.getElementById('iou_qty').value = ''; document.getElementById('iou_taka').value = ''; document.getElementById('iou_percent').value = '0';
+            document.getElementById('iou_qty').value = ''; 
+            // ADDED: Clear Bundle Qty
+            document.getElementById('iou_bundle_qty').value = ''; 
+            document.getElementById('iou_taka').value = ''; document.getElementById('iou_percent').value = '0';
             editingIouId = null; document.getElementById('iou_save_btn').innerText = "Save IOU Entry"; document.getElementById('iou_cancel_btn').classList.add('hidden');
         }
 
@@ -1351,7 +1376,10 @@
                 document.getElementById('iou_sales').value = d.sales || 0;
                 document.getElementById('iou_return').value = d.returnVal || 0;
                 document.getElementById('iou_sold').value = d.soldVal || 0;
-                document.getElementById('iou_qty').value = d.qty; document.getElementById('iou_taka').value = d.taka; document.getElementById('iou_percent').value = d.percent;
+                document.getElementById('iou_qty').value = d.qty; 
+                // ADDED: Load Bundle Qty on Edit
+                document.getElementById('iou_bundle_qty').value = d.bundleQty || 0; 
+                document.getElementById('iou_taka').value = d.taka; document.getElementById('iou_percent').value = d.percent;
                 editingIouId = id; document.getElementById('iou_save_btn').innerText = "Update"; document.getElementById('iou_cancel_btn').classList.remove('hidden');
                 const el = document.getElementById('mgmtIouBody'); if(!el.classList.contains('show')) new bootstrap.Collapse(el, {toggle: true});
             });
@@ -1364,23 +1392,25 @@
             const fFrom = document.getElementById('filter_iou_from').value; const fTo = document.getElementById('filter_iou_to').value; const fDa = document.getElementById('filter_iou_da').value;
             database.ref('IOU_List').on('value', snap => {
                 const tbody = document.getElementById('iou_admin_table_body'); tbody.innerHTML = '';
-                let tSales=0, tRet=0, tSold=0, tQty=0, tTaka=0, count=1;
-                if(!snap.exists()) tbody.innerHTML = '<tr><td colspan="13" class="text-center">No Data</td></tr>';
+                let tSales=0, tRet=0, tSold=0, tQty=0, tBQty=0, tTaka=0, count=1;
+                if(!snap.exists()) tbody.innerHTML = '<tr><td colspan="14" class="text-center">No Data</td></tr>';
                 snap.forEach(child => {
                     const d = child.val();
                     let show = true;
                     if(fFrom && d.date < fFrom) show = false; if(fTo && d.date > fTo) show = false; if(fDa && d.daId !== fDa) show = false;
                     if(show) {
                         const iSold = d.soldVal || ((d.sales || 0) - (d.returnVal || 0));
-                        tSales += (d.sales || 0); tRet += (d.returnVal || 0); tSold += iSold; tQty += d.qty || 0; tTaka += d.taka || 0;
+                        tSales += (d.sales || 0); tRet += (d.returnVal || 0); tSold += iSold; tQty += d.qty || 0; tBQty += d.bundleQty || 0; tTaka += d.taka || 0;
                         const badge = d.status === 'used' ? '<span class="badge bg-secondary">Used</span>' : '<span class="badge bg-success">Active</span>';
-                        tbody.innerHTML += `<tr class="${d.status === 'used' ? 'table-secondary' : ''}"><td>${count++}</td><td>${formatDate(d.date)}</td><td>${d.daName}</td><td>${d.territory}</td><td>${d.mpo}</td><td>${d.summary}</td><td>${d.sales || 0}</td><td>${d.returnVal || 0}</td><td>${iSold}</td><td>${d.qty}</td><td>${d.taka}</td><td>${d.percent}%</td><td>${badge} <button class="btn btn-sm btn-warning" onclick="editIOU('${child.key}')">Edit</button> <button class="btn btn-sm btn-danger" onclick="deleteIOU('${child.key}')">X</button></td></tr>`;
+                        tbody.innerHTML += `<tr class="${d.status === 'used' ? 'table-secondary' : ''}"><td>${count++}</td><td>${formatDate(d.date)}</td><td>${d.daName}</td><td>${d.territory}</td><td>${d.mpo}</td><td>${d.summary}</td><td>${d.sales || 0}</td><td>${d.returnVal || 0}</td><td>${iSold}</td><td>${d.qty}</td><td>${d.bundleQty || 0}</td><td>${d.taka}</td><td>${d.percent}%</td><td>${badge} <button class="btn btn-sm btn-warning" onclick="editIOU('${child.key}')">Edit</button> <button class="btn btn-sm btn-danger" onclick="deleteIOU('${child.key}')">X</button></td></tr>`;
                     }
                 });
                 document.getElementById('iou_tot_sales').innerText = tSales; 
                 document.getElementById('iou_tot_ret').innerText = tRet;
                 document.getElementById('iou_tot_sold').innerText = tSold;
                 document.getElementById('iou_tot_qty').innerText = tQty; 
+                // ADDED: Total Bundle Qty
+                document.getElementById('iou_tot_bqty').innerText = tBQty;
                 document.getElementById('iou_tot_taka').innerText = tTaka;
             });
         }
@@ -1409,6 +1439,8 @@
             document.getElementById('form_invoice_val').value = iou.soldVal || iou.sales; // Use Sold Value
             document.getElementById('form_return_val').value = iou.returnVal || 0; // Use Return Value
             document.getElementById('form_invoice_qty').value = iou.qty; 
+            // ADDED: Fill Bundle Qty from IOU
+            document.getElementById('form_bundle_qty').value = iou.bundleQty || 0;
             calculateSoldValue();
             const tbody = document.getElementById('expense_table_body');
             if(tbody.rows.length > 0) { tbody.rows[0].querySelector('.exp-amount').value = iou.taka; calculateRowTotal(tbody.rows[0].querySelector('.exp-amount')); }
@@ -1560,6 +1592,8 @@
                 document.getElementById('p_mpo').innerText = bill.mpo; document.getElementById('p_summary').innerText = bill.summaryNo;
                 document.getElementById('p_inv_val').innerText = bill.invoiceVal; document.getElementById('p_ret_val').innerText = bill.returnVal;
                 document.getElementById('p_sold_val').innerText = bill.soldVal; document.getElementById('p_inv_qty').innerText = bill.invoiceQty;
+                // ADDED: Print Bundle Qty
+                document.getElementById('p_bundle_qty').innerText = bill.bundleQty || 0;
                 document.getElementById('p_total_amount').innerText = bill.totalAmount;
                 document.getElementById('p_total_words').innerText = numberToEnglish(bill.totalAmount) + " Taka Only";
                 document.getElementById('p_cost_percent').innerText = costPercent; document.getElementById('p_prepared_by').innerText = bill.daName;
