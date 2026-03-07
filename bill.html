@@ -98,6 +98,11 @@
         .summary-row-warn { background-color: #fff3cd; }
         .summary-row-danger { background-color: #f8d7da; }
 
+        /* Scrollable List Styles */
+        .scroll-box-sm { max-height: 200px; overflow-y: auto; }
+        .scroll-box-md { max-height: 250px; overflow-y: auto; }
+        .scroll-box-lg { max-height: 400px; overflow-y: auto; }
+
         /* ========== MOBILE OPTIMIZATION STYLES ========== */
         @media (max-width: 768px) {
             .btn-sm { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
@@ -146,17 +151,13 @@
         <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-white shadow-sm rounded no-print">
             <h5 class="mb-0" id="welcome_msg">Welcome</h5>
             <div class="d-flex align-items-center">
-                <button id="notif_btn" class="btn btn-light btn-sm position-relative me-2 hidden" onclick="showNotifTab()">
-                    <i class="bi bi-bell"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notif_count">0</span>
-                </button>
                 <button onclick="logout()" class="btn btn-outline-danger btn-sm">Logout</button>
             </div>
         </div>
 
         <!-- Nav Tabs -->
         <ul class="nav nav-tabs no-print" id="myTab" role="tablist">
-            <li class="nav-item admin-only" role="presentation">
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="dash-tab" data-bs-toggle="tab" data-bs-target="#dashTab" type="button">Dashboard</button>
             </li>
             <li class="nav-item user-only" role="presentation">
@@ -165,88 +166,289 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#billTab" type="button">History</button>
             </li>
+            <!-- Admin Specific Tabs -->
             <li class="nav-item admin-only" role="presentation">
-                <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approvedTab" type="button">Approved Bill</button>
-            </li>
-            <li class="nav-item user-only" role="presentation">
-                <button class="nav-link" id="user_notif-tab" data-bs-toggle="tab" data-bs-target="#userNotifTab" type="button">Notifications</button>
-            </li>
-            <li class="nav-item user-only" role="presentation">
-                <button class="nav-link" id="iou_user-tab" data-bs-toggle="tab" data-bs-target="#iouUserTab" type="button">My IOU</button>
-            </li>
-            <li class="nav-item user-only" role="presentation">
-                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contactTab" type="button">Contact Us</button>
-            </li>
-            <li class="nav-item admin-only" role="presentation">
-                <button class="nav-link" id="mgmt-tab" data-bs-toggle="tab" data-bs-target="#mgmtTab" type="button">Management</button>
+                <button class="nav-link" id="iou-tab" data-bs-toggle="tab" data-bs-target="#iouTab" type="button">IOU List</button>
             </li>
         </ul>
 
         <div class="tab-content pt-2">
             
-            <!-- ADMIN DASHBOARD TAB -->
-            <div class="tab-pane fade admin-only" id="dashTab" role="tabpanel">
-                <div class="row mb-3">
-                    <div class="col-4">
-                        <div class="card dash-card text-white bg-dash-total h-100">
-                            <div class="card-body py-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">Total Bills</h6>
-                                        <h3 class="mb-0" id="dash_total_count">0</h3>
+            <!-- DASHBOARD TAB -->
+            <div class="tab-pane fade" id="dashTab" role="tabpanel">
+                
+                <!-- ADMIN DASHBOARD VIEW -->
+                <div class="admin-only">
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <div class="card dash-card text-white bg-dash-total h-100">
+                                <div class="card-body py-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">Total Bills</h6>
+                                            <h3 class="mb-0" id="dash_total_count">0</h3>
+                                        </div>
+                                        <div class="dash-icon bg-white text-primary opacity-25"><i class="bi bi-file-earmark-text"></i></div>
                                     </div>
-                                    <div class="dash-icon bg-white text-primary opacity-25"><i class="bi bi-file-earmark-text"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card dash-card text-white bg-dash-pending h-100">
+                                <div class="card-body py-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">Pending</h6>
+                                            <h3 class="mb-0" id="dash_pending_count">0</h3>
+                                        </div>
+                                        <div class="dash-icon bg-white text-warning opacity-25"><i class="bi bi-hourglass-split"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card dash-card text-white bg-dash-approved h-100">
+                                <div class="card-body py-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">Approved</h6>
+                                            <h3 class="mb-0" id="dash_approved_count">0</h3>
+                                        </div>
+                                        <div class="dash-icon bg-white text-success opacity-25"><i class="bi bi-check-circle"></i></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-4">
-                        <div class="card dash-card text-white bg-dash-pending h-100">
-                            <div class="card-body py-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">Pending</h6>
-                                        <h3 class="mb-0" id="dash_pending_count">0</h3>
+
+                    <!-- Admin Dashboard Forms Row -->
+                    <div class="row mb-3">
+                        <!-- LEFT COLUMN: New User Record -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card dash-card no-print">
+                                <div class="card-header bg-success text-white py-2">New User Record</div>
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted">ID (Manual)</label>
+                                            <input type="text" id="new_user_id" class="form-control form-control-sm" placeholder="e.g. DA-001">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted">Name</label>
+                                            <input type="text" id="new_user_name" class="form-control form-control-sm" placeholder="Full Name">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted">Phone</label>
+                                            <input type="text" id="new_user_phone" class="form-control form-control-sm" placeholder="01xxxxxxxxx">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted">Depot</label>
+                                            <select id="new_user_depot" class="form-select form-select-sm">
+                                                <option value="Kushtia">Kushtia</option>
+                                                <option value="Other Depot">Other Depot</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-12"><hr class="my-1"></div>
+                                        <h6 class="text-muted col-12 mb-1">Login Information</h6>
+
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted">Username</label>
+                                            <input type="text" id="new_user_username" class="form-control form-control-sm" placeholder="Login ID">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted">Password</label>
+                                            <input type="text" id="new_user_pass" class="form-control form-control-sm" placeholder="Password">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="fw-bold text-muted">Role Type</label>
+                                            <select id="new_user_role" class="form-select form-select-sm">
+                                                <option value="user">User (Depot Based)</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12"><button onclick="saveNewUser()" class="btn btn-success w-100 btn-sm mt-2">Save Record</button></div>
                                     </div>
-                                    <div class="dash-icon bg-white text-warning opacity-25"><i class="bi bi-hourglass-split"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: IOU Entry Form -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card dash-card no-print">
+                                <div class="card-header bg-primary text-white py-2">IOU Entry</div>
+                                <div class="card-body">
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6 col-md-3"><label>Date</label><input type="date" id="iou_date" class="form-control form-control-sm"></div>
+                                        <div class="col-6 col-md-3"><label>DA Name</label><select id="iou_da_name" class="form-select form-select-sm"></select></div>
+                                        <div class="col-6 col-md-3"><label>Territory</label><input type="text" id="iou_territory" class="form-control form-control-sm"></div>
+                                        <div class="col-6 col-md-3"><label>MPO</label><input type="text" id="iou_mpo" class="form-control form-control-sm"></div>
+                                        
+                                        <div class="col-4 col-md-2"><label>Summary</label><input type="text" id="iou_summary" class="form-control form-control-sm"></div>
+                                        <div class="col-4 col-md-2"><label>Sales</label><input type="number" id="iou_sales" class="form-control form-control-sm" oninput="calcIouPercent()"></div>
+                                        <div class="col-4 col-md-2"><label>Return</label><input type="number" id="iou_return" class="form-control form-control-sm" value="0" oninput="calcIouPercent()"></div>
+                                        <div class="col-4 col-md-2"><label>Sold</label><input type="number" id="iou_sold" class="form-control form-control-sm" readonly></div>
+                                        <div class="col-4 col-md-2"><label>Qty</label><input type="number" id="iou_qty" class="form-control form-control-sm"></div>
+                                        <div class="col-4 col-md-2"><label>Bund</label><input type="number" id="iou_bundle_qty" class="form-control form-control-sm"></div>
+                                        
+                                        <div class="col-4 col-md-2"><label>Taka</label><input type="number" id="iou_taka" class="form-control form-control-sm" oninput="calcIouPercent()"></div>
+                                        <div class="col-4 col-md-2"><label>%</label><input type="text" id="iou_percent" class="form-control form-control-sm" readonly></div>
+                                    </div>
+
+                                    <button id="iou_save_btn" onclick="saveIOU()" class="btn btn-success btn-sm w-100">Save IOU Entry</button>
+                                    <button id="iou_cancel_btn" onclick="cancelIOUEdit()" class="btn btn-secondary btn-sm w-100 hidden">Cancel Edit</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-4">
-                        <div class="card dash-card text-white bg-dash-approved h-100">
-                            <div class="card-body py-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">Approved</h6>
-                                        <h3 class="mb-0" id="dash_approved_count">0</h3>
+
+                    <!-- Admin Dashboard Data Tables Row -->
+                    <div class="row">
+                        <!-- LEFT COLUMN: Tables -->
+                        <div class="col-md-6 mb-3">
+                            <!-- DA Wise Bill Status -->
+                            <div class="card dash-card no-print mb-3">
+                                <div class="card-header bg-white py-2">
+                                    <h6 class="mb-0"><i class="bi bi-people"></i> DA Wise Bill Status</h6>
+                                </div>
+                                <div class="card-body p-2 scroll-box-md">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>DA Name</th>
+                                                    <th class="text-center">Total</th>
+                                                    <th class="text-center text-warning">Pending</th>
+                                                    <th class="text-center text-success">Approved</th>
+                                                    <th class="text-end">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="dash_da_table_body">
+                                                <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                    <div class="dash-icon bg-white text-success opacity-25"><i class="bi bi-check-circle"></i></div>
+                                </div>
+                            </div>
+
+                            <!-- Approved Bill vs IOU Summary -->
+                            <div class="card dash-card no-print">
+                                <div class="card-header bg-info text-white py-2">
+                                    <h6 class="mb-0"><i class="bi bi-check-circle-fill"></i> Approved Bill vs IOU Summary</h6>
+                                </div>
+                                <div class="card-body p-2 scroll-box-md">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-secondary">
+                                                <tr>
+                                                    <th>DA Name</th>
+                                                    <th class="text-end">Total IOU</th>
+                                                    <th class="text-end">Appr. Bill</th>
+                                                    <th class="text-end">Balance</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="approved_summary_body">
+                                                <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: Messages & Notifications -->
+                        <div class="col-md-6 mb-3">
+                             <!-- Send Notification -->
+                             <div class="card dash-card no-print mb-3">
+                                <div class="card-header bg-white py-2">
+                                    <h6 class="mb-0"><i class="bi bi-megaphone"></i> Send Notification</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <textarea id="notif_msg_dash" class="form-control" rows="2" placeholder="Type message..."></textarea>
+                                    </div>
+                                    <button onclick="sendNotification()" class="btn btn-primary btn-sm w-100">Send to All Users</button>
+                                </div>
+                            </div>
+
+                            <!-- User Messages -->
+                            <div class="card dash-card no-print">
+                                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0"><i class="bi bi-envelope"></i> User Messages</h6>
+                                </div>
+                                <div class="card-body p-0 scroll-box-md" id="admin_inbox_container">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <tbody id="admin_inbox_body_dash"><tr><td class="text-center p-2">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card dash-card no-print">
-                    <div class="card-header bg-white py-2">
-                        <h6 class="mb-0"><i class="bi bi-people"></i> DA Wise Bill Status</h6>
-                    </div>
-                    <div class="card-body p-2">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>DA Name</th>
-                                        <th class="text-center">Total</th>
-                                        <th class="text-center text-warning">Pending</th>
-                                        <th class="text-center text-success">Approved</th>
-                                        <th class="text-end">Total Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="dash_da_table_body">
-                                    <tr><td colspan="5" class="text-center">Loading...</td></tr>
-                                </tbody>
-                            </table>
+
+                <!-- USER DASHBOARD VIEW -->
+                <div class="user-only">
+                    <div class="row">
+                        <!-- LEFT COLUMN: IOU Section -->
+                        <div class="col-md-6 mb-3">
+                            <!-- User: Active IOU -->
+                            <div class="card dash-card no-print mb-3">
+                                <div class="card-header bg-primary text-white py-2">
+                                    <h6 class="mb-0"><i class="bi bi-cash-stack"></i> My Active IOU</h6>
+                                </div>
+                                <div class="card-body p-0 scroll-box-sm">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <thead class="table-light"><tr><th>Date</th><th>Route</th><th>Taka</th><th>Action</th></tr></thead>
+                                            <tbody id="user_active_iou_list"><tr><td colspan="4" class="text-center p-2">No Active IOU</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- User: Used IOU -->
+                            <div class="card dash-card no-print">
+                                <div class="card-header bg-secondary text-white py-2">
+                                    <h6 class="mb-0"><i class="bi bi-check-circle"></i> BILL SUBMIT IOU</h6>
+                                </div>
+                                <div class="card-body p-0 scroll-box-sm">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <thead class="table-light"><tr><th>Date</th><th>Route</th><th>Taka</th><th>Status</th></tr></thead>
+                                            <tbody id="user_used_iou_list"><tr><td colspan="4" class="text-center p-2">No Used IOU</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- RIGHT COLUMN: Notifications & Contact -->
+                        <div class="col-md-6 mb-3">
+                            <!-- User: Notifications -->
+                            <div class="card dash-card no-print mb-3">
+                                <div class="card-header bg-info text-white py-2">
+                                    <h6 class="mb-0"><i class="bi bi-bell"></i> Notifications</h6>
+                                </div>
+                                <div class="card-body p-0 scroll-box-sm" id="user_notif_list_dash">
+                                    <div class="text-center p-2">No notifications</div>
+                                </div>
+                            </div>
+
+                            <!-- User: Contact Us -->
+                            <div class="card dash-card no-print">
+                                <div class="card-header bg-success text-white py-2">
+                                    <h6 class="mb-0"><i class="bi bi-chat-dots"></i> Contact Admin</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <textarea id="contact_msg_dash" class="form-control" rows="2" placeholder="Write your message..."></textarea>
+                                    </div>
+                                    <button onclick="sendContactMessage()" class="btn btn-success btn-sm w-100">Send Message</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -260,7 +462,6 @@
                         <h5>Delivery Expense Bill</h5>
                     </div>
                     
-                    <!-- Hidden fields for data tracking -->
                     <input type="hidden" id="form_iou_amount" value="0">
 
                     <div class="row mb-2">
@@ -292,11 +493,9 @@
                     
                     <div class="row mb-2">
                         <div class="col-4"><label>Invoice Qty:</label><input type="number" id="form_invoice_qty" class="form-control form-control-sm" oninput="triggerAutoSave()"></div>
-                        <!-- ADDED: Bundle Qty Input in Bill Form -->
                         <div class="col-4"><label>Bundle Qty:</label><input type="number" id="form_bundle_qty" class="form-control form-control-sm" oninput="triggerAutoSave()"></div>
                     </div>
 
-                    <!-- QUICK ENTRY SECTION -->
                     <div class="quick-entry-card no-print">
                         <h6 class="text-primary mb-2"><i class="bi bi-lightning-charge-fill"></i> Quick Entry</h6>
                         <div class="row g-1">
@@ -367,214 +566,51 @@
             <div class="tab-pane fade" id="billTab" role="tabpanel">
                 <div class="card dash-card no-print"><div class="card-body p-1">
                     <div class="table-responsive"><table class="table table-bordered table-hover table-sm">
-                        <!-- Header is dynamically generated by JS based on role -->
                         <thead id="bill_table_head" class="table-dark"></thead>
                         <tbody id="bill_table_body"><tr><td colspan="12" class="text-center">Loading...</td></tr></tbody>
                     </table></div>
                 </div></div>
             </div>
 
-            <!-- Admin Only Approved Bill Summary Tab -->
-            <div class="tab-pane fade admin-only" id="approvedTab" role="tabpanel">
+            <!-- Admin Tab: IOU List (Previously IOU Entry) -->
+            <div class="tab-pane fade admin-only" id="iouTab" role="tabpanel">
                 <div class="card dash-card no-print">
-                    <div class="card-header bg-info text-white py-2">
-                        <h6 class="mb-0"><i class="bi bi-check-circle-fill"></i> DA Wise Approved Bill vs IOU Summary</h6>
-                    </div>
-                    <div class="card-body p-2">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-sm">
-                                <thead class="table-secondary">
-                                    <tr>
-                                        <th>DA Name</th>
-                                        <th class="text-end">Total IOU</th>
-                                        <th class="text-end">Total Approved Bill</th>
-                                        <th class="text-end">Balance</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="approved_summary_body">
-                                    <tr><td colspan="5" class="text-center">Loading data...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab: User Notifications -->
-            <div class="tab-pane fade user-only" id="userNotifTab" role="tabpanel">
-                <div class="card dash-card no-print">
-                    <div class="card-header py-1 bg-info text-white">My Notifications</div>
-                    <div class="card-body p-0" id="user_notif_list"></div>
-                </div>
-            </div>
-
-            <!-- Tab: User IOU List -->
-            <div class="tab-pane fade user-only" id="iouUserTab" role="tabpanel">
-                <div class="card dash-card no-print"><div class="card-header py-1">My IOU List (Click to Auto-fill Bill)</div>
-                    <div class="card-body p-1">
-                        <div class="table-responsive"><table class="table table-bordered table-hover table-sm">
-                            <thead class="table-secondary"><tr><th>#</th><th>Date</th><th>Territory</th><th>MPO</th><th>Sales</th><th>Taka</th><th>Status</th></tr></thead>
-                            <tbody id="iou_user_table_body"><tr><td colspan="7" class="text-center">No IOU assigned</td></tr></tbody>
-                        </table></div>
-                    </div>
-                </div>
-            </div>
-             <!-- Tab: User Contact Us -->
-            <div class="tab-pane fade user-only" id="contactTab" role="tabpanel">
-                <div class="card dash-card no-print">
-                    <div class="card-header py-1 bg-success text-white">Contact Admin</div>
+                    <div class="card-header bg-primary text-white py-2">IOU List & Management</div>
                     <div class="card-body">
-                        <div class="mb-2">
-                            <label class="fw-bold">Message:</label>
-                            <textarea id="contact_msg_input" class="form-control" rows="3" placeholder="Write your message to admin..."></textarea>
+                        
+                        <!-- Filters Only -->
+                        <div class="row g-2 mb-2 p-2 bg-light border rounded align-items-end">
+                            <div class="col-6 col-md-3">
+                                <label class="fw-bold text-muted">From Date</label>
+                                <input type="date" id="filter_iou_from" class="form-control form-control-sm" onchange="loadAdminIOU()">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="fw-bold text-muted">To Date</label>
+                                <input type="date" id="filter_iou_to" class="form-control form-control-sm" onchange="loadAdminIOU()">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="fw-bold text-muted">Filter by DA</label>
+                                <select id="filter_iou_da" class="form-select form-select-sm" onchange="loadAdminIOU()">
+                                    <option value="">All DA</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-2">
+                                <button onclick="resetIOUFilter()" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
+                            </div>
                         </div>
-                        <button onclick="sendContactMessage()" class="btn btn-success w-100">Send Message</button>
+
+                        <div class="table-responsive"><table class="table table-bordered table-sm">
+                            <thead class="table-secondary">
+                                <tr><th>#</th><th>Date</th><th>DA Name</th><th>Territory</th><th>MPO</th><th>Summary</th><th>Sales</th><th>Ret</th><th>Sold</th><th>Qty</th><th>Bund Qty</th><th>Taka</th><th>%</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="iou_admin_table_body"></tbody>
+                            <tfoot><tr class="fw-bold table-warning"><td colspan="6">Filtered Total</td><td id="iou_tot_sales">0</td><td id="iou_tot_ret">0</td><td id="iou_tot_sold">0</td><td id="iou_tot_qty">0</td><td id="iou_tot_bqty">0</td><td id="iou_tot_taka">0</td><td></td><td></td></tr></tfoot>
+                        </table></div>
+
                     </div>
                 </div>
             </div>
 
-            <!-- Admin Tab: Management -->
-            <div class="tab-pane fade admin-only" id="mgmtTab" role="tabpanel">
-                <div class="mgmt-section">
-                    <div class="mgmt-header" data-bs-toggle="collapse" data-bs-target="#mgmtMsgBody">
-                        <i class="bi bi-envelope"></i> User Messages
-                    </div>
-                    <div id="mgmtMsgBody" class="collapse show">
-                        <div class="mgmt-body p-1">
-                             <div class="table-responsive"><table class="table table-sm table-bordered">
-                                 <thead class="table-secondary"><tr><th>Time</th><th>From</th><th>Message</th><th>Action</th></tr></thead>
-                                 <tbody id="admin_inbox_body"><tr><td colspan="4" class="text-center">No messages</td></tr></tbody>
-                             </table></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mgmt-section">
-                    <div class="mgmt-header" data-bs-toggle="collapse" data-bs-target="#mgmtIouBody">
-                        <i class="bi bi-cash-stack"></i> IOU Entry
-                    </div>
-                    <div id="mgmtIouBody" class="collapse">
-                        <div class="mgmt-body">
-                            <!-- UPDATED IOU FORM -->
-                            <div class="row g-2 mb-2">
-                                <div class="col-6 col-md-2"><label>Date</label><input type="date" id="iou_date" class="form-control form-control-sm"></div>
-                                <div class="col-6 col-md-2"><label>DA Name</label><select id="iou_da_name" class="form-select form-select-sm"></select></div>
-                                <div class="col-6 col-md-2"><label>Territory</label><input type="text" id="iou_territory" class="form-control form-control-sm"></div>
-                                <div class="col-6 col-md-2"><label>MPO Name</label><input type="text" id="iou_mpo" class="form-control form-control-sm"></div>
-                                <div class="col-4 col-md-1"><label>Summary</label><input type="text" id="iou_summary" class="form-control form-control-sm"></div>
-                                
-                                <div class="col-4 col-md-1"><label>Sales</label><input type="number" id="iou_sales" class="form-control form-control-sm" oninput="calcIouPercent()"></div>
-                                <div class="col-4 col-md-1"><label>Return</label><input type="number" id="iou_return" class="form-control form-control-sm" value="0" oninput="calcIouPercent()"></div>
-                                <div class="col-4 col-md-1"><label>Sold</label><input type="number" id="iou_sold" class="form-control form-control-sm" readonly></div>
-                                
-                                <div class="col-4 col-md-1"><label>Inv Qty</label><input type="number" id="iou_qty" class="form-control form-control-sm"></div>
-                                <!-- ADDED: Bundle Qty Input in Admin IOU Form -->
-                                <div class="col-4 col-md-1"><label>Bund Qty</label><input type="number" id="iou_bundle_qty" class="form-control form-control-sm"></div>
-                                <div class="col-4 col-md-1"><label>Taka</label><input type="number" id="iou_taka" class="form-control form-control-sm" oninput="calcIouPercent()"></div>
-                                <div class="col-4 col-md-1"><label>%</label><input type="text" id="iou_percent" class="form-control form-control-sm" readonly></div>
-                            </div>
-
-                            <button id="iou_save_btn" onclick="saveIOU()" class="btn btn-success btn-sm w-100 mb-2">Save IOU Entry</button>
-                            <button id="iou_cancel_btn" onclick="cancelIOUEdit()" class="btn btn-secondary btn-sm w-100 mb-2 hidden">Cancel Edit</button>
-                            
-                            <div class="row g-2 mb-2 p-2 bg-light border rounded align-items-end">
-                                <div class="col-6 col-md-3">
-                                    <label class="fw-bold text-muted">From Date</label>
-                                    <input type="date" id="filter_iou_from" class="form-control form-control-sm" onchange="loadAdminIOU()">
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <label class="fw-bold text-muted">To Date</label>
-                                    <input type="date" id="filter_iou_to" class="form-control form-control-sm" onchange="loadAdminIOU()">
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <label class="fw-bold text-muted">Filter by DA</label>
-                                    <select id="filter_iou_da" class="form-select form-select-sm" onchange="loadAdminIOU()">
-                                        <option value="">All DA</option>
-                                    </select>
-                                </div>
-                                <div class="col-12 col-md-2">
-                                    <button onclick="resetIOUFilter()" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
-                                </div>
-                            </div>
-
-                            <div class="table-responsive"><table class="table table-bordered table-sm">
-                                <thead class="table-secondary">
-                                    <tr><th>#</th><th>Date</th><th>DA Name</th><th>Territory</th><th>MPO</th><th>Summary</th><th>Sales</th><th>Ret</th><th>Sold</th><th>Qty</th><th>Bund Qty</th><th>Taka</th><th>%</th><th>Action</th></tr>
-                                </thead>
-                                <tbody id="iou_admin_table_body"></tbody>
-                                <tfoot><tr class="fw-bold table-warning"><td colspan="6">Filtered Total</td><td id="iou_tot_sales">0</td><td id="iou_tot_ret">0</td><td id="iou_tot_sold">0</td><td id="iou_tot_qty">0</td><td id="iou_tot_bqty">0</td><td id="iou_tot_taka">0</td><td></td><td></td></tr></tfoot>
-                            </table></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mgmt-section">
-                    <div class="mgmt-header" data-bs-toggle="collapse" data-bs-target="#mgmtNotifBody">
-                        <i class="bi bi-megaphone"></i> Send Notification
-                    </div>
-                    <div id="mgmtNotifBody" class="collapse">
-                        <div class="mgmt-body">
-                            <div class="mb-2">
-                                <textarea id="notif_msg" class="form-control" rows="2" placeholder="Type message..."></textarea>
-                            </div>
-                            <button onclick="sendNotification()" class="btn btn-primary btn-sm w-100">Send to All Users</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mgmt-section">
-                    <div class="mgmt-header" data-bs-toggle="collapse" data-bs-target="#mgmtAddBody">
-                        <i class="bi bi-person-plus"></i> New User Record
-                    </div>
-                    <div id="mgmtAddBody" class="collapse">
-                        <div class="mgmt-body">
-                             <div class="row g-2">
-                                <div class="col-md-6">
-                                    <label class="fw-bold text-muted">ID (Manual)</label>
-                                    <input type="text" id="new_user_id" class="form-control form-control-sm" placeholder="e.g. DA-001">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="fw-bold text-muted">Name</label>
-                                    <input type="text" id="new_user_name" class="form-control form-control-sm" placeholder="Full Name">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="fw-bold text-muted">Phone</label>
-                                    <input type="text" id="new_user_phone" class="form-control form-control-sm" placeholder="01xxxxxxxxx">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="fw-bold text-muted">Depot</label>
-                                    <select id="new_user_depot" class="form-select form-select-sm">
-                                        <option value="Kushtia">Kushtia</option>
-                                        <option value="Other Depot">Other Depot</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="col-12"><hr class="my-1"></div>
-                                <h6 class="text-muted col-12 mb-1">Login Information</h6>
-
-                                <div class="col-md-6">
-                                    <label class="fw-bold text-muted">Username</label>
-                                    <input type="text" id="new_user_username" class="form-control form-control-sm" placeholder="Login ID">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="fw-bold text-muted">Password</label>
-                                    <input type="text" id="new_user_pass" class="form-control form-control-sm" placeholder="Password">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="fw-bold text-muted">Role Type</label>
-                                    <select id="new_user_role" class="form-select form-select-sm">
-                                        <option value="user">User (Depot Based)</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                </div>
-                                <div class="col-12"><button onclick="saveNewUser()" class="btn btn-success w-100 btn-sm mt-2">Save Record</button></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
         </div>
     </div>
 
@@ -605,7 +641,7 @@
             <h2 style="margin:0; letter-spacing: 2px;">MONICO PHARMA LTD</h2>
             <h4 style="margin:0; text-decoration:">Delivery Expense Bill</h4>
             <h5 style="margin:0; text-decoration: ">Kushtia Depot</h5>
-            <h5 style="margin:0; text-decoration:">04-01, Dr Anowarul Korim Sarok, Kanabiler More, Jugiya, Kushtia-7000</h5>
+            <h6 style="margin:0; text-decoration:">04-01, Dr Anowarul Korim Sarok, Kanabiler More, Jugiya, Kushtia-7000</h6>
         </div>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
             <tr>
@@ -620,14 +656,11 @@
             </tr>
             <tr><td colspan="3" style="text-align: left; padding: 3px;"><strong>Route:</strong> <span id="p_route"></span></td></tr>
             <tr><td colspan="3" style="text-align: left; padding: 3px;"><strong>Name of MPO:</strong> <span id="p_mpo"></span></td></tr>
-            
-            <!-- UPDATED: Invoice Value Center, Bundle Qty Right -->
             <tr>
                 <td style="text-align: left; padding: 3px;"><strong>Summary No:</strong> <span id="p_summary"></span></td>
                 <td style="text-align: center; padding: 3px;"><strong>Invoice Value:</strong> <span id="p_inv_val"></span></td>
                 <td style="text-align: right; padding: 3px;"><strong>Bundle Qty:</strong> <span id="p_bundle_qty"></span></td>
             </tr>
-            
             <tr>
                 <td style="text-align: left; padding: 3px;"><strong>Return Value:</strong> <span id="p_ret_val"></span></td>
                 <td style="text-align: center; padding: 3px;"><strong>Sold Value:</strong> <span id="p_sold_val"></span></td>
@@ -694,7 +727,7 @@
         let daListCache = {}; 
         let currentIouId = null;
         let originalIouId = null; 
-        let iouListGlobal = {}; // Cache IOU list to show amount in history
+        let iouListGlobal = {}; 
 
         // ================= AUTO SAVE LOGIC =================
         let autoSaveTimeout;
@@ -727,7 +760,6 @@
                 invoiceVal: document.getElementById('form_invoice_val').value,
                 returnVal: document.getElementById('form_return_val').value,
                 invoiceQty: document.getElementById('form_invoice_qty').value,
-                // ADDED: Bundle Qty to Draft
                 bundleQty: document.getElementById('form_bundle_qty').value,
                 iouId: currentIouId,
                 iouAmount: document.getElementById('form_iou_amount').value, 
@@ -765,7 +797,6 @@
                 document.getElementById('form_invoice_val').value = data.invoiceVal || '';
                 document.getElementById('form_return_val').value = data.returnVal || 0;
                 document.getElementById('form_invoice_qty').value = data.invoiceQty || '';
-                // ADDED: Load Bundle Qty from Draft
                 document.getElementById('form_bundle_qty').value = data.bundleQty || '';
                 document.getElementById('form_iou_amount').value = data.iouAmount || 0; 
                 
@@ -816,7 +847,6 @@
             document.getElementById('auto_save_status').innerText = "";
         }
 
-        // ================= NEW: CLEAR BILL FORM FUNCTION =================
         function clearBillForm() {
             if(confirm("Are you sure you want to clear all data?")) {
                 editingBillId = null; editingBillDaId = null; originalIouId = null; currentIouId = null;
@@ -832,7 +862,6 @@
                 document.getElementById('form_invoice_val').value = ''; 
                 document.getElementById('form_return_val').value = 0; 
                 document.getElementById('form_invoice_qty').value = '';
-                // ADDED: Clear Bundle Qty
                 document.getElementById('form_bundle_qty').value = '';
                 document.getElementById('form_iou_amount').value = 0; 
                 
@@ -857,7 +886,6 @@
             }
         }
 
-        // ================= DATE FORMATTER =================
         function formatDate(dateStr) {
             if (!dateStr) return '';
             if (dateStr.indexOf('-') !== 4) return dateStr; 
@@ -871,7 +899,7 @@
             const passVal = document.getElementById('password').value;
 
             if (userVal === 'KS' && passVal === 'Monico@Ku007') {
-                currentUser = { name: 'Admin', role: 'admin', depot: 'all', id: 'admin_001' };
+                currentUser = { name: 'Md Sajjad Ahmed', role: 'admin', depot: 'Kushtia', designation: 'Depot In-charge', id: 'admin_001' };
                 showDashboard();
                 return;
             }
@@ -900,8 +928,6 @@
 
         function logout() { currentUser = null; location.reload(); }
         
-        function showNotifTab() { document.getElementById('user_notif-tab').click(); }
-        
         function resetAllTabs() {
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
@@ -911,41 +937,102 @@
         function showDashboard() {
             document.getElementById('login_section').classList.add('hidden');
             document.getElementById('dashboard_section').classList.remove('hidden');
-            document.getElementById('welcome_msg').innerText = `Welcome: ${currentUser.name}`;
+            
+            let welcomeText = `Welcome: ${currentUser.name}`;
+            if(currentUser.role === 'admin' && currentUser.designation) {
+                welcomeText += ` (${currentUser.designation})`;
+            }
+            document.getElementById('welcome_msg').innerText = welcomeText;
             
             document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'none');
             document.querySelectorAll('.user-only').forEach(item => item.style.display = 'none');
             
             resetAllTabs();
 
+            document.getElementById('dash-tab').classList.add('active');
+            document.getElementById('dashTab').classList.add('show', 'active');
+
             if(currentUser.role !== 'admin') {
                 document.querySelectorAll('.user-only').forEach(item => item.style.display = 'block');
-                document.getElementById('notif_btn').classList.remove('hidden');
-                loadUserNotifications();
-                
-                document.getElementById('entry-tab').classList.add('active');
-                document.getElementById('entryTab').classList.add('show', 'active');
-                
-                loadUserIOU();
+                loadUserDashboardData(); 
             } else {
                 document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'block');
-                
-                document.getElementById('dash-tab').classList.add('active');
-                document.getElementById('dashTab').classList.add('show', 'active');
-
                 loadDAListForIOU();
-                loadAdminInbox(); 
-                loadDashboardStats(); 
-                loadApprovedBillSummary();
-                loadIOUListGlobal(); // Load IOU list for history reference
+                loadAdminDashboardData(); 
+                loadIOUListGlobal(); 
+                loadAdminIOU(); 
             }
 
             prepareBillEntryForm();
             loadBills(); 
-            if(currentUser.role === 'admin') loadAdminIOU();
         }
 
-        // ================= DASHBOARD DATA LOGIC =================
+        // ================= USER DASHBOARD DATA =================
+        function loadUserDashboardData() {
+            database.ref('IOU_List').orderByChild('daId').equalTo(currentUser.id).on('value', snap => {
+                const activeBody = document.getElementById('user_active_iou_list');
+                const usedBody = document.getElementById('user_used_iou_list');
+                activeBody.innerHTML = ''; usedBody.innerHTML = '';
+                
+                let hasActive = false, hasUsed = false;
+                
+                if(snap.exists()) {
+                    snap.forEach(child => {
+                        const d = child.val();
+                        if(d.status === 'used') {
+                            hasUsed = true;
+                            usedBody.innerHTML += `<tr><td>${formatDate(d.date)}</td><td>${d.territory}</td><td>${d.taka}</td><td><span class="badge bg-secondary">Used</span></td></tr>`;
+                        } else {
+                            hasActive = true;
+                            activeBody.innerHTML += `<tr class="clickable-row" onclick="fillBillFromIOU('${child.key}')"><td>${formatDate(d.date)}</td><td>${d.territory}</td><td>${d.taka}</td><td><i class="bi bi-check-circle-fill text-success"></i></td></tr>`;
+                        }
+                    });
+                }
+                if(!hasActive) activeBody.innerHTML = '<tr><td colspan="4" class="text-center p-2">No Active IOU</td></tr>';
+                if(!hasUsed) usedBody.innerHTML = '<tr><td colspan="4" class="text-center p-2">No Used IOU</td></tr>';
+            });
+
+            database.ref('UserNotifications/' + currentUser.id).orderByChild('timestamp').limitToLast(3).on('value', snap => {
+                const container = document.getElementById('user_notif_list_dash');
+                container.innerHTML = '';
+                if(!snap.exists()) { container.innerHTML = '<div class="p-2 text-center text-muted">No notifications</div>'; return; }
+                
+                const data = [];
+                snap.forEach(c => data.push({key: c.key, ...c.val()}));
+                data.reverse().forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = `notif-item ${item.read ? 'read' : 'unread'}`;
+                    div.innerHTML = `<div><small>${new Date(item.timestamp).toLocaleString()}</small><br>${item.message}</div>`;
+                    if(!item.read) div.onclick = () => markNotifRead(item.key);
+                    container.appendChild(div);
+                });
+            });
+
+            loadUserIOU(); 
+        }
+
+        // ================= ADMIN DASHBOARD DATA =================
+        function loadAdminDashboardData() {
+            loadDashboardStats(); 
+            loadApprovedBillSummary(); 
+
+            database.ref('AdminInbox').orderByChild('timestamp').limitToLast(6).on('value', snap => {
+                const tbody = document.getElementById('admin_inbox_body_dash');
+                tbody.innerHTML = '';
+                if(!snap.exists()) { tbody.innerHTML = '<tr><td class="text-center p-2">No messages</td></tr>'; return; }
+                
+                const data = [];
+                snap.forEach(c => data.push({key: c.key, ...c.val()}));
+                data.reverse().forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = item.read ? '' : 'table-warning';
+                    tr.innerHTML = `<td><small>${new Date(item.timestamp).toLocaleString()}</small><br><b>${item.senderName}:</b> ${item.message}</td>`;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        // ================= DASHBOARD STATS =================
         function loadDashboardStats() {
             database.ref('Bills').on('value', (snapshot) => {
                 let totalBills = 0;
@@ -1044,36 +1131,17 @@
 
         // ================= USER CONTACT ADMIN =================
         function sendContactMessage() {
-            const msg = document.getElementById('contact_msg_input').value;
+            const msgInput = document.getElementById('contact_msg_dash') || document.getElementById('contact_msg_input');
+            const msg = msgInput.value;
             if(!msg) { alert("Please write a message"); return; }
             const data = { senderId: currentUser.id, senderName: currentUser.name, message: msg, timestamp: Date.now(), read: false };
-            database.ref('AdminInbox').push(data).then(() => { alert("Message Sent!"); document.getElementById('contact_msg_input').value = ''; }).catch(e => alert("Error: " + e.message));
+            database.ref('AdminInbox').push(data).then(() => { alert("Message Sent!"); msgInput.value = ''; }).catch(e => alert("Error: " + e.message));
         }
-
-        function loadAdminInbox() {
-            const inboxRef = database.ref('AdminInbox');
-            inboxRef.orderByChild('timestamp').on('value', (snapshot) => {
-                const tbody = document.getElementById('admin_inbox_body');
-                tbody.innerHTML = '';
-                if(!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="4" class="text-center">No messages</td></tr>'; return; }
-                const data = [];
-                snapshot.forEach(child => { data.push({key: child.key, ...child.val()}); });
-                data.reverse(); 
-                data.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.className = item.read ? '' : 'table-warning';
-                    tr.innerHTML = `<td>${new Date(item.timestamp).toLocaleString()}</td><td>${item.senderName}</td><td>${item.message}</td><td><button class="btn btn-sm btn-info" onclick="markMsgRead('${item.key}', this)">Mark Read</button> <button class="btn btn-sm btn-danger" onclick="deleteMsg('${item.key}')">X</button></td>`;
-                    tbody.appendChild(tr);
-                });
-            });
-        }
-
-        function markMsgRead(key, btn) { database.ref('AdminInbox/' + key).update({ read: true }); btn.disabled = true; btn.innerText = "Read"; btn.closest('tr').classList.remove('table-warning'); }
-        function deleteMsg(key) { if(confirm("Delete?")) database.ref('AdminInbox/' + key).remove(); }
 
         // ================= NOTIFICATION SYSTEM =================
         function sendNotification() {
-            const msg = document.getElementById('notif_msg').value;
+            const msgInput = document.getElementById('notif_msg_dash') || document.getElementById('notif_msg');
+            const msg = msgInput.value;
             if(!msg) return;
             const usersRef = database.ref('Users');
             usersRef.once('value', (snapshot) => {
@@ -1082,29 +1150,7 @@
                     const notifKey = database.ref().child('UserNotifications/' + child.key).push().key;
                     updates['/UserNotifications/' + child.key + '/' + notifKey] = { message: msg, timestamp: Date.now(), read: false };
                 });
-                database.ref().update(updates).then(() => { alert("Sent!"); document.getElementById('notif_msg').value = ''; }).catch(e => alert(e.message));
-            });
-        }
-
-        function loadUserNotifications() {
-            const notifRef = database.ref('UserNotifications/' + currentUser.id);
-            notifRef.orderByChild('timestamp').on('value', (snapshot) => {
-                const container = document.getElementById('user_notif_list');
-                container.innerHTML = '';
-                let unreadCount = 0;
-                if(!snapshot.exists()) { container.innerHTML = '<div class="p-3 text-center text-muted">No notifications</div>'; document.getElementById('notif_count').innerText = 0; return; }
-                const data = [];
-                snapshot.forEach(child => { data.push({key: child.key, ...child.val()}); });
-                data.reverse();
-                data.forEach(item => {
-                    if(!item.read) unreadCount++;
-                    const div = document.createElement('div');
-                    div.className = `notif-item ${item.read ? 'read' : 'unread'}`;
-                    div.innerHTML = `<div class="d-flex justify-content-between"><div>${item.message}</div><small class="text-muted">${item.read ? 'Read' : 'New'}</small></div><small class="text-muted">${new Date(item.timestamp).toLocaleString()}</small>`;
-                    if(!item.read) div.onclick = () => markNotifRead(item.key);
-                    container.appendChild(div);
-                });
-                document.getElementById('notif_count').innerText = unreadCount;
+                database.ref().update(updates).then(() => { alert("Sent!"); msgInput.value = ''; }).catch(e => alert(e.message));
             });
         }
 
@@ -1201,7 +1247,6 @@
                 route: document.getElementById('form_route').value, mpo: document.getElementById('form_mpo').value, summaryNo: document.getElementById('form_summary').value,
                 invoiceVal: parseFloat(document.getElementById('form_invoice_val').value) || 0, returnVal: parseFloat(document.getElementById('form_return_val').value) || 0,
                 soldVal: parseFloat(document.getElementById('form_sold_val').value) || 0, invoiceQty: parseInt(document.getElementById('form_invoice_qty').value) || 0,
-                // ADDED: Save Bundle Qty
                 bundleQty: parseInt(document.getElementById('form_bundle_qty').value) || 0,
                 totalAmount: grandTotal, 
                 originalAmount: grandTotal, 
@@ -1232,7 +1277,6 @@
                         processIOU(); clearLocalDraft(); alert(statusType === 'draft' ? "Draft Saved!" : "Submitted!");
                         document.getElementById('form_route').value = ''; document.getElementById('form_mpo').value = ''; document.getElementById('form_summary').value = '';
                         document.getElementById('form_invoice_val').value = ''; document.getElementById('form_return_val').value = 0; document.getElementById('form_invoice_qty').value = '';
-                        // ADDED: Clear Bundle Qty after submit
                         document.getElementById('form_bundle_qty').value = '';
                         document.getElementById('grand_total').value = '0'; document.getElementById('form_cost_percent').innerText = '0%'; document.getElementById('expense_table_body').innerHTML = '';
                         document.getElementById('form_iou_amount').value = 0; 
@@ -1253,7 +1297,6 @@
                 document.getElementById('form_mpo').value = bill.mpo; document.getElementById('form_summary').value = bill.summaryNo;
                 document.getElementById('form_invoice_val').value = bill.invoiceVal; document.getElementById('form_return_val').value = bill.returnVal;
                 document.getElementById('form_invoice_qty').value = bill.invoiceQty;
-                // ADDED: Load Bundle Qty on Edit
                 document.getElementById('form_bundle_qty').value = bill.bundleQty || 0;
                 document.getElementById('form_iou_amount').value = bill.iouAmount || 0; 
                 
@@ -1292,7 +1335,6 @@
         }
 
         // ================= IOU LOGIC =================
-        // Load IOU list into memory for Admin History Cross-Reference
         function loadIOUListGlobal() {
             database.ref('IOU_List').on('value', snap => {
                 iouListGlobal = {};
@@ -1310,7 +1352,6 @@
             
             document.getElementById('iou_sold').value = sold;
             
-            // Calculate percentage based on Sold value
             if (sold > 0) {
                 document.getElementById('iou_percent').value = ((taka / sold) * 100).toFixed(2);
             } else {
@@ -1345,10 +1386,9 @@
                 date: document.getElementById('iou_date').value, daId: daId, daName: document.getElementById('iou_da_name').selectedOptions[0].text,
                 territory: document.getElementById('iou_territory').value, mpo: document.getElementById('iou_mpo').value, summary: document.getElementById('iou_summary').value,
                 sales: salesVal, 
-                returnVal: returnVal, // Save Return
-                soldVal: soldVal, // Save Sold
+                returnVal: returnVal, 
+                soldVal: soldVal, 
                 qty: parseInt(document.getElementById('iou_qty').value) || 0,
-                // ADDED: Save Bundle Qty
                 bundleQty: parseInt(document.getElementById('iou_bundle_qty').value) || 0,
                 taka: parseFloat(document.getElementById('iou_taka').value) || 0, 
                 percent: document.getElementById('iou_percent').value, status: 'active'
@@ -1362,7 +1402,6 @@
             document.getElementById('iou_mpo').value = ''; document.getElementById('iou_summary').value = ''; document.getElementById('iou_sales').value = '';
             document.getElementById('iou_return').value = ''; document.getElementById('iou_sold').value = '';
             document.getElementById('iou_qty').value = ''; 
-            // ADDED: Clear Bundle Qty
             document.getElementById('iou_bundle_qty').value = ''; 
             document.getElementById('iou_taka').value = ''; document.getElementById('iou_percent').value = '0';
             editingIouId = null; document.getElementById('iou_save_btn').innerText = "Save IOU Entry"; document.getElementById('iou_cancel_btn').classList.add('hidden');
@@ -1377,11 +1416,14 @@
                 document.getElementById('iou_return').value = d.returnVal || 0;
                 document.getElementById('iou_sold').value = d.soldVal || 0;
                 document.getElementById('iou_qty').value = d.qty; 
-                // ADDED: Load Bundle Qty on Edit
                 document.getElementById('iou_bundle_qty').value = d.bundleQty || 0; 
                 document.getElementById('iou_taka').value = d.taka; document.getElementById('iou_percent').value = d.percent;
                 editingIouId = id; document.getElementById('iou_save_btn').innerText = "Update"; document.getElementById('iou_cancel_btn').classList.remove('hidden');
-                const el = document.getElementById('mgmtIouBody'); if(!el.classList.contains('show')) new bootstrap.Collapse(el, {toggle: true});
+                // Switch to Dashboard to show the form (since form is on dashboard now)
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active')); 
+                document.getElementById('dashTab').classList.add('show', 'active');
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active')); 
+                document.getElementById('dash-tab').classList.add('active');
             });
         }
 
@@ -1409,7 +1451,6 @@
                 document.getElementById('iou_tot_ret').innerText = tRet;
                 document.getElementById('iou_tot_sold').innerText = tSold;
                 document.getElementById('iou_tot_qty').innerText = tQty; 
-                // ADDED: Total Bundle Qty
                 document.getElementById('iou_tot_bqty').innerText = tBQty;
                 document.getElementById('iou_tot_taka').innerText = tTaka;
             });
@@ -1419,32 +1460,43 @@
 
         function loadUserIOU() {
             database.ref('IOU_List').orderByChild('daId').equalTo(currentUser.id).on('value', snap => {
-                const tbody = document.getElementById('iou_user_table_body'); tbody.innerHTML = '';
-                let count = 1;
-                if(!snap.exists()) tbody.innerHTML = '<tr><td colspan="7" class="text-center">No IOU assigned</td></tr>';
-                snap.forEach(child => {
-                    const d = child.val(); const tr = document.createElement('tr');
-                    if(d.status === 'used') { tr.classList.add('iou-used'); tr.innerHTML = `<td>${count++}</td><td>${formatDate(d.date)}</td><td>${d.territory}</td><td>${d.mpo}</td><td>${d.sales || 0}</td><td>${d.taka}</td><td><span class="badge badge-used">Used</span></td>`; }
-                    else { tr.classList.add('clickable-row'); tr.onclick = () => fillBillFromIOU(d, child.key); tr.innerHTML = `<td>${count++}</td><td>${formatDate(d.date)}</td><td>${d.territory}</td><td>${d.mpo}</td><td>${d.sales || 0}</td><td>${d.taka}</td><td><span class="badge bg-primary">Active</span></td>`; }
-                    tbody.appendChild(tr);
-                });
+                // UI handled by Dashboard
             });
         }
 
-        function fillBillFromIOU(iou, iouId) {
-            currentIouId = iouId;
-            document.getElementById('form_iou_amount').value = iou.taka; 
-            document.getElementById('form_dep_date').value = iou.date; document.getElementById('form_ret_date').value = iou.date; document.getElementById('form_submit_date').value = iou.date;
-            document.getElementById('form_route').value = iou.territory; document.getElementById('form_mpo').value = iou.mpo; document.getElementById('form_summary').value = iou.summary;
-            document.getElementById('form_invoice_val').value = iou.soldVal || iou.sales; // Use Sold Value
-            document.getElementById('form_return_val').value = iou.returnVal || 0; // Use Return Value
-            document.getElementById('form_invoice_qty').value = iou.qty; 
-            // ADDED: Fill Bundle Qty from IOU
-            document.getElementById('form_bundle_qty').value = iou.bundleQty || 0;
-            calculateSoldValue();
-            const tbody = document.getElementById('expense_table_body');
-            if(tbody.rows.length > 0) { tbody.rows[0].querySelector('.exp-amount').value = iou.taka; calculateRowTotal(tbody.rows[0].querySelector('.exp-amount')); }
-            triggerAutoSave(); document.getElementById('entry-tab').click(); alert("Form Auto-filled!");
+        function fillBillFromIOU(iouId) {
+            database.ref('IOU_List/' + iouId).once('value', snap => {
+                const iou = snap.val();
+                if(!iou) return;
+                
+                currentIouId = iouId;
+                document.getElementById('form_iou_amount').value = iou.taka; 
+                document.getElementById('form_dep_date').value = iou.date; 
+                document.getElementById('form_ret_date').value = iou.date; 
+                document.getElementById('form_submit_date').value = iou.date;
+                document.getElementById('form_route').value = iou.territory; 
+                document.getElementById('form_mpo').value = iou.mpo; 
+                document.getElementById('form_summary').value = iou.summary;
+                document.getElementById('form_invoice_val').value = iou.soldVal || iou.sales; 
+                document.getElementById('form_return_val').value = iou.returnVal || 0; 
+                document.getElementById('form_invoice_qty').value = iou.qty; 
+                document.getElementById('form_bundle_qty').value = iou.bundleQty || 0;
+                calculateSoldValue();
+                
+                const tbody = document.getElementById('expense_table_body');
+                if(tbody.rows.length > 0) { 
+                    tbody.rows[0].querySelector('.exp-amount').value = iou.taka; 
+                    calculateRowTotal(tbody.rows[0].querySelector('.exp-amount')); 
+                }
+                triggerAutoSave(); 
+                
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active')); 
+                document.getElementById('entryTab').classList.add('show', 'active');
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active')); 
+                document.getElementById('entry-tab').classList.add('active');
+                
+                alert("Form Auto-filled!");
+            });
         }
 
         // ================= BILL HISTORY LOGIC =================
@@ -1453,7 +1505,6 @@
             const tableBody = document.getElementById('bill_table_body');
             tableBody.innerHTML = '<tr><td colspan="12" class="text-center">Loading...</td></tr>';
             
-            // Set Header based on role
             if(currentUser.role === 'admin') {
                 tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Depot</th><th>Route</th><th>IOU</th><th>SALES</th><th>Amount</th><th>%</th><th>Approved Amt</th><th>%</th><th>Status</th><th>Action</th></tr>`;
             } else {
@@ -1490,11 +1541,8 @@
                             
                             let actionBtns = '';
                             
-                            // Calculate data for Admin View
                             const sales = bill.invoiceVal || 0;
                             
-                            // FIX: IOU LOGIC
-                            // Priority: 1. Bill's iouAmount -> 2. IOU List Cache (using iouId) -> 3. Zero
                             let iou = bill.iouAmount || 0;
                             if (!iou && bill.iouId && iouListGlobal[bill.iouId]) {
                                 iou = iouListGlobal[bill.iouId].taka || 0;
@@ -1505,21 +1553,16 @@
                             const approvedAmount = bill.totalAmount || 0;
                             
                             const claimedPercent = sales > 0 ? ((originalAmount / sales) * 100).toFixed(1) : 0;
-                            // Approved percent depends on Approved Amount
                             const approvedPercent = sales > 0 ? ((approvedAmount / sales) * 100).toFixed(1) : 0;
 
                             if (currentUser.role === 'admin') {
-                                // Amount Column (Claimed Amount)
                                 let amtHtml = originalAmount.toFixed(2);
 
-                                // Approved Amount Column
-                                // FIX: Only show Approved Amount if status is GREEN (Approved)
                                 let appAmtHtml = '-';
                                 let appPctHtml = '-';
 
                                 if (bill.status === 'green') {
                                     if(deduction > 0) {
-                                        // If deduction, show strikethrough original and final amount
                                         appAmtHtml = `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>`;
                                     } else {
                                         appAmtHtml = `<span class="payable-amount">${approvedAmount.toFixed(2)}</span>`;
@@ -1546,9 +1589,6 @@
                                         ${bill.status === 'red' ? `<button class="btn btn-secondary btn-sm" onclick="openCutModal('${billId}', '${bill.depot}', '${daId}', ${bill.totalAmount})">Cut</button>` : ''}
                                     </td>`;
                             } else {
-                                // User View - UPDATED AS REQUESTED
-                                // Users ONLY see the original amount they claimed.
-                                // They do NOT see the approved amount or deductions in the list.
                                 let amtHtml = originalAmount.toFixed(2);
 
                                 if (bill.status === 'red' || bill.status === 'draft') {
@@ -1592,7 +1632,6 @@
                 document.getElementById('p_mpo').innerText = bill.mpo; document.getElementById('p_summary').innerText = bill.summaryNo;
                 document.getElementById('p_inv_val').innerText = bill.invoiceVal; document.getElementById('p_ret_val').innerText = bill.returnVal;
                 document.getElementById('p_sold_val').innerText = bill.soldVal; document.getElementById('p_inv_qty').innerText = bill.invoiceQty;
-                // ADDED: Print Bundle Qty
                 document.getElementById('p_bundle_qty').innerText = bill.bundleQty || 0;
                 document.getElementById('p_total_amount').innerText = bill.totalAmount;
                 document.getElementById('p_total_words').innerText = numberToEnglish(bill.totalAmount) + " Taka Only";
