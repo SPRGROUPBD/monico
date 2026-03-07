@@ -412,7 +412,7 @@
                             <!-- User: Used IOU -->
                             <div class="card dash-card no-print">
                                 <div class="card-header bg-secondary text-white py-2">
-                                    <h6 class="mb-0"><i class="bi bi-check-circle"></i> BILL SUBMIT IOU</h6>
+                                    <h6 class="mb-0"><i class="bi bi-check-circle"></i> Used IOU</h6>
                                 </div>
                                 <div class="card-body p-0 scroll-box-sm">
                                     <div class="table-responsive">
@@ -564,10 +564,29 @@
 
             <!-- Tab: Bill History -->
             <div class="tab-pane fade" id="billTab" role="tabpanel">
+                
+                <!-- ADMIN FILTER SECTION -->
+                <div class="card dash-card no-print mb-2 admin-only">
+                    <div class="card-body p-2">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <label class="fw-bold text-muted">Filter by DA</label>
+                                <select id="filter_history_da" class="form-select form-select-sm" onchange="loadBills()">
+                                    <option value="">All DAs</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button onclick="resetHistoryFilter()" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card dash-card no-print"><div class="card-body p-1">
                     <div class="table-responsive"><table class="table table-bordered table-hover table-sm">
                         <thead id="bill_table_head" class="table-dark"></thead>
                         <tbody id="bill_table_body"><tr><td colspan="12" class="text-center">Loading...</td></tr></tbody>
+                        <tfoot id="bill_table_foot" class="table-success fw-bold"></tfoot>
                     </table></div>
                 </div></div>
             </div>
@@ -641,7 +660,7 @@
             <h2 style="margin:0; letter-spacing: 2px;">MONICO PHARMA LTD</h2>
             <h4 style="margin:0; text-decoration:">Delivery Expense Bill</h4>
             <h5 style="margin:0; text-decoration: ">Kushtia Depot</h5>
-            <h6 style="margin:0; text-decoration:">04-01, Dr Anowarul Korim Sarok, Kanabiler More, Jugiya, Kushtia-7000</h6>
+            <h5 style="margin:0; text-decoration:">04-01, Dr Anowarul Korim Sarok, Kanabiler More, Jugiya, Kushtia-7000</h5>
         </div>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
             <tr>
@@ -957,7 +976,7 @@
                 loadUserDashboardData(); 
             } else {
                 document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'block');
-                loadDAListForIOU();
+                loadDAListForIOU(); 
                 loadAdminDashboardData(); 
                 loadIOUListGlobal(); 
                 loadAdminIOU(); 
@@ -1363,16 +1382,40 @@
             database.ref('Users').once('value', snap => {
                 const selectAdd = document.getElementById('iou_da_name');
                 const selectFilter = document.getElementById('filter_iou_da');
-                selectAdd.innerHTML = '<option value="">Select DA</option>'; selectFilter.innerHTML = '<option value="">All DA</option>';
-                snap.forEach(child => {
-                    const u = child.val();
-                    if(u.role !== 'admin') {
-                        daListCache[child.key] = u.name;
-                        const opt = `<option value="${child.key}">${u.name}</option>`;
-                        selectAdd.innerHTML += opt; selectFilter.innerHTML += opt;
-                    }
-                });
+                
+                // Reset cache
+                daListCache = {}; 
+
+                if(selectAdd) selectAdd.innerHTML = '<option value="">Select DA</option>'; 
+                if(selectFilter) selectFilter.innerHTML = '<option value="">All DA</option>';
+                
+                if(snap.exists()){
+                    snap.forEach(child => {
+                        const u = child.val();
+                        if(u.role !== 'admin') {
+                            daListCache[child.key] = u.name;
+                            const opt = `<option value="${child.key}">${u.name}</option>`;
+                            if(selectAdd) selectAdd.innerHTML += opt; 
+                            if(selectFilter) selectFilter.innerHTML += opt;
+                        }
+                    });
+                }
+
+                // Update History Filter
+                populateHistoryDAFilter();
             });
+        }
+
+        // Helper to populate history filter
+        function populateHistoryDAFilter() {
+            const select = document.getElementById('filter_history_da');
+            if(!select) return;
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">All DAs</option>';
+            Object.keys(daListCache).forEach(id => {
+                 select.innerHTML += `<option value="${id}">${daListCache[id]}</option>`;
+            });
+            select.value = currentVal;
         }
 
         function saveIOU() {
@@ -1500,10 +1543,25 @@
         }
 
         // ================= BILL HISTORY LOGIC =================
+        
+        function resetHistoryFilter() {
+            document.getElementById('filter_history_da').value = '';
+            loadBills();
+        }
+
         function loadBills() {
             const tableHead = document.getElementById('bill_table_head');
             const tableBody = document.getElementById('bill_table_body');
+            const tableFoot = document.getElementById('bill_table_foot');
+            
+            // Get filter value
+            const selectedDA = document.getElementById('filter_history_da')?.value || '';
+
+            // Prepare Totals
+            let sumSales = 0, sumIOU = 0, sumClaimed = 0, sumApproved = 0;
+
             tableBody.innerHTML = '<tr><td colspan="12" class="text-center">Loading...</td></tr>';
+            tableFoot.innerHTML = '';
             
             if(currentUser.role === 'admin') {
                 tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Depot</th><th>Route</th><th>IOU</th><th>SALES</th><th>Amount</th><th>%</th><th>Approved Amt</th><th>%</th><th>Status</th><th>Action</th></tr>`;
@@ -1527,6 +1585,9 @@
                             const bill = billSnapshot.val();
                             const billId = billSnapshot.key;
                             const daId = bill.daId;
+
+                            // Admin Filter Logic
+                            if (currentUser.role === 'admin' && selectedDA && bill.daId !== selectedDA) return;
 
                             if (currentUser.role === 'user' && bill.daId !== currentUser.id) return;
                             if (currentUser.role === 'admin' && bill.status === 'draft') return;
@@ -1556,6 +1617,13 @@
                             const approvedPercent = sales > 0 ? ((approvedAmount / sales) * 100).toFixed(1) : 0;
 
                             if (currentUser.role === 'admin') {
+                                
+                                // Add to totals (Admin Only for filtered view)
+                                sumSales += sales;
+                                sumIOU += iou;
+                                sumClaimed += originalAmount;
+                                if(bill.status === 'green') sumApproved += approvedAmount;
+
                                 let amtHtml = originalAmount.toFixed(2);
 
                                 let appAmtHtml = '-';
@@ -1611,6 +1679,25 @@
                         });
                     });
                 });
+
+                // Update Footer with Totals (Admin Only)
+                if(currentUser.role === 'admin') {
+                    // Calculate Total Percentages
+                    const totalClaimedPercent = sumSales > 0 ? ((sumClaimed / sumSales) * 100).toFixed(1) + "%" : "0%";
+                    const totalApprovedPercent = sumSales > 0 ? ((sumApproved / sumSales) * 100).toFixed(1) + "%" : "0%";
+
+                    tableFoot.innerHTML = `<tr>
+                        <td colspan="4" class="text-end">Total</td>
+                        <td class="text-end fw-bold">${sumIOU.toFixed(2)}</td>
+                        <td class="text-end fw-bold">${sumSales.toFixed(2)}</td>
+                        <td class="text-end fw-bold">${sumClaimed.toFixed(2)}</td>
+                        <td class="text-end fw-bold">${totalClaimedPercent}</td>
+                        <td class="text-end fw-bold text-success">${sumApproved.toFixed(2)}</td>
+                        <td class="text-end fw-bold text-success">${totalApprovedPercent}</td>
+                        <td colspan="2"></td>
+                    </tr>`;
+                }
+
             }, (error) => {
                 console.error("Firebase Read Failed: ", error);
                 tableBody.innerHTML = `<tr><td colspan="12" class="text-center text-danger">Database Error</td></tr>`;
@@ -1753,7 +1840,7 @@
                     document.getElementById('new_user_id').value = ''; document.getElementById('new_user_name').value = ''; document.getElementById('new_user_phone').value = '';
                     document.getElementById('new_user_username').value = ''; document.getElementById('new_user_pass').value = ''; document.getElementById('new_user_depot').value = 'Kushtia';
                     document.getElementById('new_user_role').value = 'user';
-                    loadDAListForIOU();
+                    loadDAListForIOU(); // Reloads list and updates History filter
                 }
             });
         }
