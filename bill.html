@@ -92,6 +92,11 @@
             #expense_table_body input, #expense_table_body select { font-size: 11px; padding: 0.2rem 0.3rem; height: 26px; }
             #expense_table_body .btn-sm { padding: 0.1rem 0.3rem; font-size: 10px; }
         }
+        
+        /* Summary Table Style */
+        .summary-table th { background-color: #e9ecef; font-size: 12px; text-align: center; }
+        .summary-table td { font-size: 13px; text-align: center; font-weight: bold; }
+        .summary-table .value-highlight { color: #0d6efd; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -139,6 +144,10 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#billTab" type="button">History</button>
+            </li>
+            <!-- NEW TAB for Admin Approved History -->
+            <li class="nav-item admin-superadmin-only" role="presentation">
+                <button class="nav-link" id="approved-history-tab" data-bs-toggle="tab" data-bs-target="#approvedHistoryTab" type="button">Approved History</button>
             </li>
             <li class="nav-item admin-only" role="presentation">
                 <button class="nav-link" id="iou-tab" data-bs-toggle="tab" data-bs-target="#iouTab" type="button">IOU List</button>
@@ -504,7 +513,7 @@
                 </div>
             </div>
 
-            <!-- Tab: Bill History -->
+            <!-- Tab: Bill History (Pending for Admin) -->
             <div class="tab-pane fade" id="billTab" role="tabpanel">
                 
                 <div class="card dash-card no-print mb-2 admin-only">
@@ -528,6 +537,23 @@
                         <thead id="bill_table_head" class="table-dark"></thead>
                         <tbody id="bill_table_body"><tr><td colspan="12" class="text-center">Loading...</td></tr></tbody>
                         <tfoot id="bill_table_foot" class="table-success fw-bold"></tfoot>
+                    </table></div>
+                </div></div>
+            </div>
+
+            <!-- NEW Tab: Approved History (Checked & Approved) -->
+            <div class="tab-pane fade" id="approvedHistoryTab" role="tabpanel">
+                <div class="card dash-card no-print"><div class="card-body p-1">
+                    <h6 class="text-center text-muted mb-1">Checked & Approved Bills</h6>
+                    <div class="table-responsive"><table class="table table-bordered table-hover table-sm">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Date</th><th>DA Name</th><th>Route</th><th>IOU</th><th>Sales</th>
+                                <th>User Bill</th><th>User %</th><th>Payable</th><th>Payable %</th>
+                                <th>Status</th><th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approved_bill_table_body"><tr><td colspan="11" class="text-center">Loading...</td></tr></tbody>
                     </table></div>
                 </div></div>
             </div>
@@ -657,11 +683,43 @@
                 </div>
                 <div class="modal-body p-2">
                     <input type="hidden" id="edit_bill_id"><input type="hidden" id="edit_depot">
+                    
+                    <!-- Deduction Table -->
                     <div class="table-responsive"><table class="table table-sm modal-table table-bordered">
                         <thead class="table-secondary text-center"><tr><th>Date</th><th>From</th><th>To</th><th>Mode</th><th>Amount</th><th>DA</th><th>Deduction</th><th>Total</th></tr></thead>
                         <tbody id="modal_expense_body"></tbody>
                         <tfoot><tr class="table-light fw-bold"><td colspan="7" class="text-end">Total Payable:</td><td class="text-center text-success" id="modal_grand_total">0</td></tr></tfoot>
                     </table></div>
+
+                    <!-- Summary Section (New) -->
+                    <div class="mt-3 p-2 border rounded bg-light">
+                        <h6 class="text-center mb-2">Bill Checking Summary</h6>
+                        <table class="table table-sm table-bordered summary-table">
+                            <thead>
+                                <tr>
+                                    <th>IOU</th>
+                                    <th>Sales</th>
+                                    <th>User Bill</th>
+                                    <th>User %</th>
+                                    <th>Total Payable</th>
+                                    <th>Payable %</th>
+                                    <th>Final Approved</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="sum_iou">0</td>
+                                    <td id="sum_sales">0</td>
+                                    <td id="sum_user_bill">0</td>
+                                    <td id="sum_user_per">0%</td>
+                                    <td id="sum_payable">0</td>
+                                    <td id="sum_payable_per">0%</td>
+                                    <td id="sum_final" class="text-success">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
                 </div>
                 <div class="modal-footer py-1">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
@@ -767,6 +825,11 @@
         let iouListGlobal = {}; 
         let userPhotoBase64 = null; 
         let profilePhotoBase64 = null;
+        
+        // Modal state variables
+        let modalSales = 0;
+        let modalUserBill = 0;
+        let modalIou = 0;
 
         // ================= AUTO SAVE LOGIC =================
         let autoSaveTimeout;
@@ -1104,6 +1167,7 @@
             document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'none');
             document.querySelectorAll('.user-only').forEach(item => item.style.display = 'none');
             document.querySelectorAll('.superadmin-only').forEach(item => item.style.display = 'none');
+            document.querySelectorAll('.admin-superadmin-only').forEach(item => item.style.display = 'none'); // New class
             
             resetAllTabs();
 
@@ -1120,6 +1184,8 @@
             } else {
                 // Both Admin and SuperAdmin see admin dashboard
                 document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'block');
+                document.querySelectorAll('.admin-superadmin-only').forEach(item => item.style.display = 'block'); // Show new tab
+                
                 loadDAListForIOU(); 
                 loadAdminDashboardData(); 
                 loadIOUListGlobal(); 
@@ -1690,29 +1756,32 @@
         function loadBills() {
             const tableHead = document.getElementById('bill_table_head');
             const tableBody = document.getElementById('bill_table_body');
-            const tableFoot = document.getElementById('bill_table_foot');
+            const approvedTableBody = document.getElementById('approved_bill_table_body');
             
             const selectedDA = document.getElementById('filter_history_da')?.value || '';
 
             tableBody.innerHTML = '<tr><td colspan="12" class="text-center">Loading...</td></tr>';
-            tableFoot.innerHTML = '';
+            approvedTableBody.innerHTML = '<tr><td colspan="11" class="text-center">Loading...</td></tr>';
             
             // Table Headers based on Role
             if (currentUser.role === 'user') {
                 tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Depot</th><th>Route</th><th>Amount</th><th>Status</th></tr>`;
             } else if (currentUser.role === 'admin') {
-                tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Route</th><th>IOU</th><th>Sales</th><th>Claimed</th><th>Deduct</th><th>Payable</th><th>Status</th><th>Action</th></tr>`;
+                tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Route</th><th>IOU</th><th>Sales</th><th>User Bill</th><th>User %</th><th>Status</th><th>Action</th></tr>`;
             } else { // Super Admin
-                tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Route</th><th>IOU</th><th>Sales</th><th>User Bill</th><th>User %</th><th>Payable</th><th>Payable %</th><th>Status</th><th>Action</th></tr>`;
+                tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Route</th><th>IOU</th><th>Sales</th><th>User Bill</th><th>User %</th><th>Status</th><th>Action</th></tr>`;
             }
 
             const billsRef = database.ref('Bills');
             
             billsRef.on('value', (snapshot) => {
                 tableBody.innerHTML = '';
+                approvedTableBody.innerHTML = '';
+                
                 if (!snapshot.exists()) { 
                     const colSpan = currentUser.role === 'user' ? '6' : '10';
                     tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center text-danger">No Bills Found</td></tr>`; 
+                    approvedTableBody.innerHTML = `<tr><td colspan="11" class="text-center text-danger">No Bills Found</td></tr>`;
                     return; 
                 }
 
@@ -1723,54 +1792,38 @@
                             const billId = billSnapshot.key;
                             const daId = bill.daId;
 
-                            // Permissions Logic
-                            if (currentUser.role === 'user' && bill.daId !== currentUser.id) return;
-                            
-                            // Admin View: Show red (Pending) and orange (Checked)
-                            if (currentUser.role === 'admin' && bill.status === 'green') return; 
-
-                            // Super Admin View: Show orange (Checked) and green (Approved)
-                            if (currentUser.role === 'superadmin' && bill.status === 'red') return; 
-                            
-                            // Admin Filter
-                            if (currentUser.role === 'admin' && selectedDA && bill.daId !== selectedDA) return;
-
-                            const tr = document.createElement('tr');
-                            if(bill.status === 'draft') tr.classList.add('status-draft');
-                            else if (bill.status === 'red') tr.classList.add('status-red');
-                            else if (bill.status === 'orange') tr.classList.add('status-orange');
-                            else tr.classList.add('status-green');
-
-                            let statusText = bill.status.toUpperCase();
-                            if(bill.status === 'red') statusText = "PENDING";
-                            if(bill.status === 'orange') statusText = "CHECKED BY DIC";
-                            if(bill.status === 'green') statusText = "APPROVED";
-                            
+                            // Calculations
                             const sales = bill.invoiceVal || 0;
                             let iou = bill.iouAmount || 0;
                             if (!iou && bill.iouId && iouListGlobal[bill.iouId]) {
                                 iou = iouListGlobal[bill.iouId].taka || 0;
                             }
-
                             const deduction = bill.deduction || 0;
                             const originalAmount = bill.originalAmount || (bill.totalAmount + deduction); 
                             const approvedAmount = bill.totalAmount || 0;
+                            const userBillPer = sales > 0 ? ((originalAmount/sales)*100).toFixed(1) : '0';
+                            const payPer = sales > 0 ? ((approvedAmount/sales)*100).toFixed(1) : '0';
 
-                            // ROW GENERATION
+                            // Logic for User
                             if (currentUser.role === 'user') {
-                                // USER VIEW
-                                // User sees Original Amount. Does not see Deduction.
-                                // Actions: Edit/Delete only if status is 'red' (Pending) and deduction is 0.
-                                
+                                if (bill.daId !== currentUser.id) return;
+                                // User sees all bills in one list
+                                const tr = document.createElement('tr');
+                                if(bill.status === 'draft') tr.classList.add('status-draft');
+                                else if (bill.status === 'red') tr.classList.add('status-red');
+                                else if (bill.status === 'orange') tr.classList.add('status-orange');
+                                else tr.classList.add('status-green');
+
+                                let statusText = bill.status.toUpperCase();
+                                if(bill.status === 'red') statusText = "PENDING";
+                                if(bill.status === 'orange') statusText = "CHECKED";
+                                if(bill.status === 'green') statusText = "APPROVED";
+
                                 let actions = '';
                                 if (bill.status === 'red' && deduction === 0) {
                                     actions += `<button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button> `;
                                     actions += `<button class="btn btn-danger btn-sm" onclick="deleteBill('${billId}', '${bill.depot}', '${daId}')">Delete</button>`;
-                                } else if (bill.status === 'red' && deduction > 0) {
-                                    // If admin deducted but bill is still red (should not happen based on logic, but fallback)
-                                    // User cannot edit.
                                 }
-                                // No Print button for User
                                 
                                 tr.innerHTML = `
                                     <td>${formatDate(bill.submitDate || bill.depDate)}</td>
@@ -1779,79 +1832,116 @@
                                     <td>${bill.route || 'N/A'}</td>
                                     <td class="fw-bold">${originalAmount.toFixed(2)}</td>
                                     <td><b>${statusText}</b></td>`;
-                            } else if (currentUser.role === 'admin') {
-                                // ADMIN VIEW
-                                let actionBtns = '';
-                                let dedDisplay = deduction > 0 ? `<span class="text-danger fw-bold">${deduction.toFixed(2)}</span>` : '-';
-                                let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : originalAmount.toFixed(2);
+                                tableBody.appendChild(tr);
 
-                                // Edit: Only if deduction is 0 (and status red, implied)
-                                if(deduction === 0 && bill.status === 'red') {
-                                    actionBtns += `<button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button> `;
-                                }
+                            } 
+                            // Logic for Admin
+                            else if (currentUser.role === 'admin') {
+                                // Admin Filter
+                                if (selectedDA && bill.daId !== selectedDA) return;
+
+                                // Prepare Row
+                                const tr = document.createElement('tr');
+                                let statusText = bill.status.toUpperCase();
+                                if(bill.status === 'red') statusText = "PENDING";
+                                if(bill.status === 'orange') statusText = "CHECKED";
+                                if(bill.status === 'green') statusText = "APPROVED";
                                 
-                                // Print Checking Copy (Show deductions)
-                                actionBtns += `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button> `;
-                                
-                                // Check/Deduct button
+                                // History Tab (Pending/Red Only)
                                 if(bill.status === 'red') {
+                                    tr.classList.add('status-red');
+                                    let actionBtns = '';
+                                    actionBtns += `<button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button> `;
                                     actionBtns += `<button class="btn btn-secondary btn-sm" onclick="openCutModal('${billId}', '${bill.depot}', '${daId}')">Check/Deduct</button> `;
+                                    actionBtns += `<button class="btn btn-danger btn-sm" onclick="deleteBill('${billId}', '${bill.depot}', '${daId}')">Del</button>`;
+
+                                    tr.innerHTML = `
+                                        <td>${formatDate(bill.submitDate || bill.depDate)}</td>
+                                        <td>${bill.daName}</td>
+                                        <td>${bill.route || 'N/A'}</td>
+                                        <td class="text-end">${iou.toFixed(2)}</td>
+                                        <td class="text-end">${sales.toFixed(2)}</td>
+                                        <td class="text-end">${originalAmount.toFixed(2)}</td>
+                                        <td class="text-end">${userBillPer}%</td>
+                                        <td><b>${statusText}</b></td>
+                                        <td>${actionBtns}</td>`;
+                                    tableBody.appendChild(tr);
                                 }
                                 
-                                actionBtns += `<button class="btn btn-danger btn-sm" onclick="deleteBill('${billId}', '${bill.depot}', '${daId}')">Del</button>`;
+                                // Approved History Tab (Orange & Green)
+                                if(bill.status === 'orange' || bill.status === 'green') {
+                                    const trApp = document.createElement('tr');
+                                    if(bill.status === 'orange') trApp.classList.add('status-orange');
+                                    else trApp.classList.add('status-green');
 
-                                tr.innerHTML = `
-                                    <td>${formatDate(bill.submitDate || bill.depDate)}</td>
-                                    <td>${bill.daName}</td>
-                                    <td>${bill.route || 'N/A'}</td>
-                                    <td class="text-end">${iou.toFixed(2)}</td>
-                                    <td class="text-end">${sales.toFixed(2)}</td>
-                                    <td class="text-end">${originalAmount.toFixed(2)}</td>
-                                    <td class="text-end">${dedDisplay}</td>
-                                    <td class="text-end fw-bold">${payDisplay}</td>
-                                    <td><b>${statusText}</b></td>
-                                    <td>${actionBtns}</td>`;
-                            } else {
-                                // SUPER ADMIN VIEW
-                                let actionBtns = '';
-                                
-                                // Approve button for 'orange' (Checked) bills
+                                    let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
+                                    let actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>`;
+                                    
+                                    trApp.innerHTML = `
+                                        <td>${formatDate(bill.submitDate || bill.depDate)}</td>
+                                        <td>${bill.daName}</td>
+                                        <td>${bill.route || 'N/A'}</td>
+                                        <td class="text-end">${iou.toFixed(2)}</td>
+                                        <td class="text-end">${sales.toFixed(2)}</td>
+                                        <td class="text-end">${originalAmount.toFixed(2)}</td>
+                                        <td class="text-end">${userBillPer}%</td>
+                                        <td class="text-end fw-bold">${payDisplay}</td>
+                                        <td class="text-end">${payPer}%</td>
+                                        <td><b>${statusText}</b></td>
+                                        <td>${actionBtns}</td>`;
+                                    approvedTableBody.appendChild(trApp);
+                                }
+
+                            } 
+                            // Logic for Super Admin
+                            else {
+                                // History Tab (Orange - Pending for Super Admin)
                                 if(bill.status === 'orange') {
+                                    tr.classList.add('status-orange');
+                                    let actionBtns = '';
                                     actionBtns += `<button class="btn btn-success btn-sm" onclick="approveBill('${billId}', '${bill.depot}', '${daId}')">Approve</button> `;
+                                    
+                                    tr.innerHTML = `
+                                        <td>${formatDate(bill.submitDate || bill.depDate)}</td>
+                                        <td>${bill.daName}</td>
+                                        <td>${bill.route || 'N/A'}</td>
+                                        <td class="text-end">${iou.toFixed(2)}</td>
+                                        <td class="text-end">${sales.toFixed(2)}</td>
+                                        <td class="text-end">${originalAmount.toFixed(2)}</td>
+                                        <td class="text-end">${userBillPer}%</td>
+                                        <td><b>CHECKED</b></td>
+                                        <td>${actionBtns}</td>`;
+                                    tableBody.appendChild(tr);
                                 }
                                 
-                                // Print button for 'green' (Approved) bills
+                                // Approved History Tab (Green)
                                 if(bill.status === 'green') {
-                                    actionBtns += `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>`;
+                                    const trApp = document.createElement('tr');
+                                    trApp.classList.add('status-green');
+                                    let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
+                                    let actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>`;
+                                    
+                                    trApp.innerHTML = `
+                                        <td>${formatDate(bill.submitDate || bill.depDate)}</td>
+                                        <td>${bill.daName}</td>
+                                        <td>${bill.route || 'N/A'}</td>
+                                        <td class="text-end">${iou.toFixed(2)}</td>
+                                        <td class="text-end">${sales.toFixed(2)}</td>
+                                        <td class="text-end">${originalAmount.toFixed(2)}</td>
+                                        <td class="text-end">${userBillPer}%</td>
+                                        <td class="text-end fw-bold">${payDisplay}</td>
+                                        <td class="text-end">${payPer}%</td>
+                                        <td><b>APPROVED</b></td>
+                                        <td>${actionBtns}</td>`;
+                                    approvedTableBody.appendChild(trApp);
                                 }
-                                
-                                let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : originalAmount.toFixed(2);
-
-                                let userBillPer = sales > 0 ? ((originalAmount/sales)*100).toFixed(1) : '0';
-                                let payPer = sales > 0 ? ((approvedAmount/sales)*100).toFixed(1) : '0';
-
-                                tr.innerHTML = `
-                                    <td>${formatDate(bill.submitDate || bill.depDate)}</td>
-                                    <td>${bill.daName}</td>
-                                    <td>${bill.route || 'N/A'}</td>
-                                    <td class="text-end">${iou.toFixed(2)}</td>
-                                    <td class="text-end">${sales.toFixed(2)}</td>
-                                    <td class="text-end">${originalAmount.toFixed(2)}</td>
-                                    <td class="text-end">${userBillPer}%</td>
-                                    <td class="text-end fw-bold">${payDisplay}</td>
-                                    <td class="text-end">${payPer}%</td>
-                                    <td><b>${statusText}</b></td>
-                                    <td>${actionBtns}</td>`;
                             }
-
-                            tableBody.appendChild(tr);
                         });
                     });
                 });
 
             }, (error) => {
                 console.error("Firebase Read Failed: ", error);
-                tableBody.innerHTML = `<tr><td colspan="12" class="text-center text-danger">Database Error</td></tr>`;
             });
         }
 
@@ -1862,6 +1952,12 @@
             document.getElementById('edit_depot').dataset.daId = daId;
             database.ref('Bills/' + depot + '/' + daId + '/' + billId).once('value', (snapshot) => {
                 const bill = snapshot.val(); if(!bill) return;
+                
+                // Set Modal Global Variables
+                modalSales = bill.invoiceVal || 0;
+                modalUserBill = bill.originalAmount || bill.totalAmount || 0;
+                modalIou = bill.iouAmount || 0;
+
                 const tbody = document.getElementById('modal_expense_body'); tbody.innerHTML = '';
                 if(bill.expenses) {
                     bill.expenses.forEach(exp => {
@@ -1888,7 +1984,22 @@
                 else totalSpan.innerText = rowTotal;
                 grandTotal += rowTotal;
             });
-            document.getElementById('modal_grand_total').innerText = grandTotal;
+            document.getElementById('modal_grand_total').innerText = grandTotal.toFixed(2);
+
+            // Update Summary Section
+            document.getElementById('sum_iou').innerText = modalIou.toFixed(2);
+            document.getElementById('sum_sales').innerText = modalSales.toFixed(2);
+            document.getElementById('sum_user_bill').innerText = modalUserBill.toFixed(2);
+            
+            let userPer = modalSales > 0 ? ((modalUserBill / modalSales)*100).toFixed(1) : 0;
+            document.getElementById('sum_user_per').innerText = userPer + '%';
+            
+            document.getElementById('sum_payable').innerText = grandTotal.toFixed(2);
+            
+            let payPer = modalSales > 0 ? ((grandTotal / modalSales)*100).toFixed(1) : 0;
+            document.getElementById('sum_payable_per').innerText = payPer + '%';
+            
+            document.getElementById('sum_final').innerText = grandTotal.toFixed(2);
         }
 
         function saveDeduction() {
