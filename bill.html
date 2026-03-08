@@ -11,7 +11,8 @@
         .login-container { max-width: 400px; margin: 100px auto; }
         .status-red { background-color: #ffebee; border-left: 5px solid #ef5350; }
         .status-green { background-color: #e8f5e9; border-left: 5px solid #66bb6a; }
-        .status-draft { background-color: #fff3e0; border-left: 5px solid #ffa726; }
+        .status-orange { background-color: #fff3e0; border-left: 5px solid #ffa726; } /* New Status for Checked/Pending Approval */
+        .status-draft { background-color: #eceff1; border-left: 5px solid #90a4ae; }
         .hidden { display: none; }
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         
@@ -128,6 +129,7 @@
             .quick-entry-card .row.g-1 > div {
                 margin-bottom: 5px;
             }
+            .nav-tabs .nav-link { padding: 8px 10px; font-size: 12px; }
         }
     </style>
 </head>
@@ -177,6 +179,15 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#billTab" type="button">History</button>
             </li>
+            <!-- NEW MENU: Notification -->
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="notif-tab" data-bs-toggle="tab" data-bs-target="#notifTab" type="button">Notification</button>
+            </li>
+            <!-- NEW MENU: Contact Us -->
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contactTab" type="button">Contact Us</button>
+            </li>
+            
             <li class="nav-item admin-only" role="presentation">
                 <button class="nav-link" id="iou-tab" data-bs-toggle="tab" data-bs-target="#iouTab" type="button">IOU List</button>
             </li>
@@ -311,7 +322,8 @@
                                             <label class="fw-bold text-muted">Role Type</label>
                                             <select id="new_user_role" class="form-select form-select-sm">
                                                 <option value="user">User (Depot Based)</option>
-                                                <option value="admin">Admin</option>
+                                                <option value="admin">Admin (DIC)</option>
+                                                <option value="superadmin">Super Admin (RSM)</option>
                                             </select>
                                         </div>
                                         <div class="col-12"><button onclick="saveNewUser()" class="btn btn-primary w-100 btn-sm mt-2">Save Record</button></div>
@@ -323,7 +335,7 @@
                         <!-- RIGHT COLUMN: Tables & Messages -->
                         <div class="col-md-6 mb-3">
                             
-                            <!-- Online Users Card (Moved Here) -->
+                            <!-- Online Users Card -->
                             <div class="card dash-card no-print mb-3">
                                 <div class="card-header bg-success text-white py-2 d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0"><i class="bi bi-broadcast"></i> Realtime Online Users</h6>
@@ -384,7 +396,7 @@
                                 </div>
                             </div>
 
-                             <!-- Send Notification -->
+                             <!-- Send Notification (Admin Only) -->
                              <div class="card dash-card no-print mb-3">
                                 <div class="card-header bg-white py-2">
                                     <h6 class="mb-0"><i class="bi bi-megaphone"></i> Send Notification</h6>
@@ -399,7 +411,7 @@
                                 </div>
                             </div>
 
-                            <!-- User Messages -->
+                            <!-- User Messages (Admin Only) -->
                             <div class="card dash-card no-print">
                                 <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0"><i class="bi bi-envelope"></i> User Messages</h6>
@@ -614,6 +626,44 @@
                 </div></div>
             </div>
 
+            <!-- NEW Tab: Notifications (Separate Page) -->
+            <div class="tab-pane fade" id="notifTab" role="tabpanel">
+                <div class="card dash-card no-print">
+                    <div class="card-header bg-info text-white py-2">
+                        <h6 class="mb-0"><i class="bi bi-bell"></i> All Notifications</h6>
+                    </div>
+                    <div class="card-body p-0 scroll-box-lg" id="notif_list_full">
+                        <div class="text-center p-2">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW Tab: Contact Us (Separate Page) -->
+            <div class="tab-pane fade" id="contactTab" role="tabpanel">
+                <div class="card dash-card no-print">
+                    <div class="card-header bg-success text-white py-2">
+                        <h6 class="mb-0"><i class="bi bi-chat-dots"></i> Contact Administration</h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Admin View: Inbox -->
+                        <div class="admin-only">
+                            <h6>Messages from Users</h6>
+                            <div class="border rounded p-2 scroll-box-md" id="contact_inbox_admin">
+                                <!-- Inbox content loaded by JS -->
+                            </div>
+                        </div>
+                        
+                        <!-- User View: Form -->
+                        <div class="user-only">
+                            <div class="mb-2">
+                                <textarea id="contact_msg_full" class="form-control" rows="3" placeholder="Write your query or message here..."></textarea>
+                            </div>
+                            <button onclick="sendContactMessage('full')" class="btn btn-success w-100">Send Message to Admin</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Admin Tab: IOU List -->
             <div class="tab-pane fade admin-only" id="iouTab" role="tabpanel">
                 <div class="card dash-card no-print">
@@ -733,11 +783,14 @@
         </div>
     </div>
 
-    <!-- Cut Bill Modal -->
+    <!-- Cut Bill Modal (For Admin/DIC) -->
     <div class="modal fade no-print" id="cutBillModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-warning py-1"><h5 class="modal-title">Bill Deduction</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header bg-warning py-1">
+                    <h5 class="modal-title">Bill Checking & Deduction (DIC)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body p-2">
                     <input type="hidden" id="edit_bill_id"><input type="hidden" id="edit_depot">
                     <div class="table-responsive"><table class="table table-sm modal-table table-bordered">
@@ -748,7 +801,7 @@
                 </div>
                 <div class="modal-footer py-1">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                    <button onclick="saveDeduction()" type="button" class="btn btn-success btn-sm">Approve Payment</button>
+                    <button onclick="saveDeduction()" type="button" class="btn btn-success btn-sm">Save & Send for Approval</button>
                 </div>
             </div>
         </div>
@@ -801,11 +854,13 @@
                 <div style="width: 35%; text-align: right;"><strong>Cost (%):</strong> <span id="p_cost_percent"></span></div>
             </div>
         </div>
+        
+        <!-- Signature Section Logic -->
         <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
             <tr class="sign-row">
                 <td style="width: 25%; text-align: center; vertical-align: bottom; font-weight: bold;"><span id="p_prepared_by"></span></td>
-                <td style="width: 25%; text-align: center; vertical-align: bottom;"></td>
-                <td style="width: 25%; text-align: center; vertical-align: bottom;"></td>
+                <td style="width: 25%; text-align: center; vertical-align: bottom; font-weight: bold;"><span id="p_checked_by"></span></td>
+                <td style="width: 25%; text-align: center; vertical-align: bottom; font-weight: bold;"><span id="p_approved_by"></span></td>
                 <td style="width: 25%; text-align: center; vertical-align: bottom;"></td>
             </tr>
             <tr>
@@ -998,7 +1053,7 @@
                 calculateSoldValue(); 
                 clearLocalDraft();
                 
-                if(currentUser && currentUser.role !== 'admin') {
+                if(currentUser && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
                      document.getElementById('form_da_name').value = currentUser.name;
                      document.getElementById('form_depot').value = currentUser.depot;
                 }
@@ -1020,7 +1075,8 @@
             const passVal = document.getElementById('password').value;
 
             if (userVal === 'KS' && passVal === 'Monico@Ku007') {
-                currentUser = { name: 'Md Sajjad Ahmed', role: 'admin', depot: 'Kushtia', designation: 'Depot In-charge', id: 'admin_001' };
+                // Hardcoded Super Admin
+                currentUser = { name: 'Md Sajjad Ahmed', role: 'superadmin', depot: 'Kushtia', designation: 'RSM', id: 'admin_001' };
                 showDashboard();
                 return;
             }
@@ -1185,8 +1241,10 @@
                 headerPic.src = "https://via.placeholder.com/30"; 
             }
 
+            // Role Based Visibility
             document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'none');
             document.querySelectorAll('.user-only').forEach(item => item.style.display = 'none');
+            document.querySelectorAll('.superadmin-only').forEach(item => item.style.display = 'none');
             
             resetAllTabs();
 
@@ -1195,10 +1253,11 @@
 
             setupPresence(); 
 
-            if(currentUser.role !== 'admin') {
+            if(currentUser.role === 'user') {
                 document.querySelectorAll('.user-only').forEach(item => item.style.display = 'block');
                 loadUserDashboardData(); 
             } else {
+                // Both Admin and SuperAdmin see admin dashboard
                 document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'block');
                 loadDAListForIOU(); 
                 loadAdminDashboardData(); 
@@ -1209,6 +1268,7 @@
 
             prepareBillEntryForm();
             loadBills(); 
+            loadNotificationsFull(); // Load for new tab
         }
 
         // ================= USER DASHBOARD DATA =================
@@ -1236,23 +1296,45 @@
                 if(!hasUsed) usedBody.innerHTML = '<tr><td colspan="4" class="text-center p-2">No Used IOU</td></tr>';
             });
 
-            database.ref('UserNotifications/' + currentUser.id).orderByChild('timestamp').limitToLast(3).on('value', snap => {
-                const container = document.getElementById('user_notif_list_dash');
-                container.innerHTML = '';
-                if(!snap.exists()) { container.innerHTML = '<div class="p-2 text-center text-muted">No notifications</div>'; return; }
-                
-                const data = [];
-                snap.forEach(c => data.push({key: c.key, ...c.val()}));
-                data.reverse().forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = `notif-item ${item.read ? 'read' : 'unread'}`;
-                    div.innerHTML = `<div><small>${new Date(item.timestamp).toLocaleString()}</small><br>${item.message}</div>`;
-                    if(!item.read) div.onclick = () => markNotifRead(item.key);
-                    container.appendChild(div);
-                });
-            });
-
+            loadUserNotifications();
             loadUserIOU(); 
+        }
+
+        function loadUserNotifications() {
+            database.ref('UserNotifications/' + currentUser.id).orderByChild('timestamp').limitToLast(10).on('value', snap => {
+                const containerDash = document.getElementById('user_notif_list_dash');
+                const containerFull = document.getElementById('notif_list_full');
+                
+                let htmlDash = '';
+                let htmlFull = '';
+                
+                if(!snap.exists()) { 
+                    htmlDash = '<div class="p-2 text-center text-muted">No notifications</div>'; 
+                    htmlFull = '<div class="p-2 text-center text-muted">No notifications</div>'; 
+                } else {
+                    const data = [];
+                    snap.forEach(c => data.push({key: c.key, ...c.val()}));
+                    data.reverse().forEach(item => {
+                        const dateStr = new Date(item.timestamp).toLocaleString();
+                        const itemHtml = `<div class="notif-item ${item.read ? 'read' : 'unread'}" onclick="markNotifRead('${item.key}')">
+                            <div><small>${dateStr}</small><br>${item.message}</div>
+                        </div>`;
+                        htmlFull += itemHtml;
+                        if(!item.read) htmlDash += itemHtml;
+                    });
+                }
+                
+                if(containerDash) containerDash.innerHTML = htmlDash || '<div class="p-2 text-center">All caught up!</div>';
+                if(containerFull) containerFull.innerHTML = htmlFull;
+            });
+        }
+
+        function loadNotificationsFull() {
+            if(currentUser.role !== 'user') {
+                // Admins see sending interface or system logs?
+                // Let's show sent logs for admins in the full tab
+                document.getElementById('notif_list_full').innerHTML = '<div class="p-2">Admins can send notifications from the Dashboard sidebar.</div>';
+            }
         }
 
         // ================= ADMIN DASHBOARD DATA =================
@@ -1260,30 +1342,34 @@
             loadDashboardStats(); 
             loadApprovedBillSummary(); 
 
-            database.ref('AdminInbox').orderByChild('timestamp').limitToLast(10).on('value', snap => {
-                const container = document.getElementById('admin_inbox_container');
-                container.innerHTML = '';
-                if(!snap.exists()) { container.innerHTML = '<div class="text-center p-2 text-muted">No messages</div>'; return; }
+            database.ref('AdminInbox').orderByChild('timestamp').limitToLast(20).on('value', snap => {
+                const containerDash = document.getElementById('admin_inbox_container');
+                const containerFull = document.getElementById('contact_inbox_admin'); // For Contact Us Tab
                 
-                const data = [];
-                snap.forEach(c => data.push({key: c.key, ...c.val()}));
-                data.reverse().forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = `inbox-item ${item.read ? 'read' : 'unread'}`;
-                    
-                    const dateStr = new Date(item.timestamp).toLocaleString();
-                    
-                    div.innerHTML = `
-                        <div style="flex-grow: 1;">
-                            <div><small class="text-muted">${dateStr}</small></div>
-                            <div><b>${item.senderName}:</b> ${item.message}</div>
-                        </div>
-                        <div>
-                            ${!item.read ? `<button class="btn btn-sm btn-outline-secondary" onclick="markAdminMsgRead('${item.key}')"><i class="bi bi-check2"></i> Read</button>` : '<small class="text-success"><i class="bi bi-check-all"></i></small>'}
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
+                let html = '';
+                
+                if(!snap.exists()) { 
+                    html = '<div class="text-center p-2 text-muted">No messages</div>'; 
+                } else {
+                    const data = [];
+                    snap.forEach(c => data.push({key: c.key, ...c.val()}));
+                    data.reverse().forEach(item => {
+                        const dateStr = new Date(item.timestamp).toLocaleString();
+                        html += `
+                        <div class="inbox-item ${item.read ? 'read' : 'unread'}">
+                            <div style="flex-grow: 1;">
+                                <div><small class="text-muted">${dateStr}</small></div>
+                                <div><b>${item.senderName}:</b> ${item.message}</div>
+                            </div>
+                            <div>
+                                ${!item.read ? `<button class="btn btn-sm btn-outline-secondary" onclick="markAdminMsgRead('${item.key}')"><i class="bi bi-check2"></i></button>` : '<small class="text-success"><i class="bi bi-check-all"></i></small>'}
+                            </div>
+                        </div>`;
+                    });
+                }
+                
+                if(containerDash) containerDash.innerHTML = html;
+                if(containerFull) containerFull.innerHTML = html;
             });
         }
 
@@ -1305,7 +1391,7 @@
                         count++;
                         const div = document.createElement('div');
                         div.className = 'p-1 d-flex align-items-center';
-                        div.innerHTML = `<span class="online-dot"></span> ${u.name} <small class="text-muted ms-auto">${u.role === 'admin' ? 'Admin' : 'DA'}</small>`;
+                        div.innerHTML = `<span class="online-dot"></span> ${u.name} <small class="text-muted ms-auto">${u.role === 'superadmin' ? 'Super Admin' : u.role === 'admin' ? 'Admin' : 'DA'}</small>`;
                         listContainer.appendChild(div);
                     });
                 }
@@ -1318,8 +1404,9 @@
         function loadDashboardStats() {
             database.ref('Bills').on('value', (snapshot) => {
                 let totalBills = 0;
-                let pendingBills = 0;
-                let approvedBills = 0;
+                let pendingBills = 0; // Red
+                let checkedBills = 0; // Orange
+                let approvedBills = 0; // Green
                 const daStats = {}; 
 
                 if(snapshot.exists()) {
@@ -1333,7 +1420,9 @@
                                 totalBills++;
                                 daStats[daId].total++;
                                 daStats[daId].amount += bill.totalAmount || 0;
+                                
                                 if(bill.status === 'red') { pendingBills++; daStats[daId].pending++; } 
+                                else if(bill.status === 'orange') { checkedBills++; } 
                                 else if(bill.status === 'green') { approvedBills++; daStats[daId].approved++; }
                             });
                         });
@@ -1341,7 +1430,8 @@
                 }
 
                 document.getElementById('dash_total_count').innerText = totalBills;
-                document.getElementById('dash_pending_count').innerText = pendingBills;
+                // Show both pending and checked in the pending card for admin overview
+                document.getElementById('dash_pending_count').innerText = pendingBills + checkedBills; 
                 document.getElementById('dash_approved_count').innerText = approvedBills;
 
                 const tbody = document.getElementById('dash_da_table_body');
@@ -1399,8 +1489,6 @@
                         const balance = totalApp - totalIou;
                         const name = billInfo.name || iouInfo.name || id;
                         let rowClass = '';
-                        if(balance > 0) rowClass = 'summary-row-ok';
-                        else if(balance < 0) rowClass = 'summary-row-danger';
 
                         const tr = document.createElement('tr');
                         tr.className = rowClass;
@@ -1412,8 +1500,9 @@
         }
 
         // ================= USER CONTACT ADMIN =================
-        function sendContactMessage() {
-            const msgInput = document.getElementById('contact_msg_dash') || document.getElementById('contact_msg_input');
+        function sendContactMessage(source) {
+            const msgInputId = source === 'full' ? 'contact_msg_full' : 'contact_msg_dash';
+            const msgInput = document.getElementById(msgInputId);
             const msg = msgInput.value;
             if(!msg) { alert("Please write a message"); return; }
             const data = { senderId: currentUser.id, senderName: currentUser.name, message: msg, timestamp: Date.now(), read: false };
@@ -1453,7 +1542,7 @@
 
         // ================= BILL ENTRY LOGIC =================
         function prepareBillEntryForm() {
-            if(currentUser.role === 'admin') return;
+            if(currentUser.role !== 'user') return;
             document.getElementById('form_da_name').value = currentUser.name;
             document.getElementById('form_depot').value = currentUser.depot;
             const today = new Date().toISOString().split('T')[0];
@@ -1626,7 +1715,7 @@
             document.getElementById('main_submit_btn').innerText = "Submit Bill";
             document.getElementById('main_submit_btn').classList.add('btn-success'); document.getElementById('main_submit_btn').classList.remove('btn-warning');
             document.getElementById('cancel_edit_btn').classList.add('hidden'); clearLocalDraft(); prepareBillEntryForm();
-            if(currentUser.role === 'admin') document.getElementById('history-tab').click();
+            if(currentUser.role !== 'user') document.getElementById('history-tab').click();
         }
 
         // ================= IOU LOGIC =================
@@ -1667,7 +1756,7 @@
                 if(snap.exists()){
                     snap.forEach(child => {
                         const u = child.val();
-                        if(u.role !== 'admin') {
+                        if(u.role !== 'admin' && u.role !== 'superadmin') {
                             daListCache[child.key] = u.name;
                             const opt = `<option value="${child.key}">${u.name}</option>`;
                             if(selectAdd) selectAdd.innerHTML += opt; 
@@ -1832,7 +1921,7 @@
             tableBody.innerHTML = '<tr><td colspan="12" class="text-center">Loading...</td></tr>';
             tableFoot.innerHTML = '';
             
-            if(currentUser.role === 'admin') {
+            if(currentUser.role !== 'user') {
                 tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Depot</th><th>Route</th><th>IOU</th><th>SALES</th><th>Amount</th><th>%</th><th>Approved Amt</th><th>%</th><th>Status</th><th>Action</th></tr>`;
             } else {
                 tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Depot</th><th>Route</th><th>Amount</th><th>Status</th><th>Action</th></tr>`;
@@ -1843,7 +1932,7 @@
             billsRef.on('value', (snapshot) => {
                 tableBody.innerHTML = '';
                 if (!snapshot.exists()) { 
-                    const colSpan = currentUser.role === 'admin' ? '12' : '7';
+                    const colSpan = currentUser.role === 'user' ? '7' : '12';
                     tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center text-danger">No Bills Found</td></tr>`; 
                     return; 
                 }
@@ -1855,17 +1944,19 @@
                             const billId = billSnapshot.key;
                             const daId = bill.daId;
 
-                            if (currentUser.role === 'admin' && selectedDA && bill.daId !== selectedDA) return;
+                            if (currentUser.role !== 'user' && selectedDA && bill.daId !== selectedDA) return;
                             if (currentUser.role === 'user' && bill.daId !== currentUser.id) return;
-                            if (currentUser.role === 'admin' && bill.status === 'draft') return;
+                            if (currentUser.role !== 'user' && bill.status === 'draft') return;
 
                             const tr = document.createElement('tr');
                             if(bill.status === 'draft') tr.classList.add('status-draft');
                             else if (bill.status === 'red') tr.classList.add('status-red');
+                            else if (bill.status === 'orange') tr.classList.add('status-orange'); // Checked
                             else tr.classList.add('status-green');
 
                             let statusText = bill.status.toUpperCase();
                             if(bill.status === 'red') statusText = "PENDING";
+                            if(bill.status === 'orange') statusText = "CHECKED";
                             
                             let actionBtns = '';
                             
@@ -1883,18 +1974,26 @@
                             const claimedPercent = sales > 0 ? ((originalAmount / sales) * 100).toFixed(1) : 0;
                             const approvedPercent = sales > 0 ? ((approvedAmount / sales) * 100).toFixed(1) : 0;
 
-                            if (currentUser.role === 'admin') {
+                            // Logic for Admin Columns
+                            if (currentUser.role !== 'user') {
                                 sumSales += sales;
                                 sumIOU += iou;
                                 sumClaimed += originalAmount;
                                 if(bill.status === 'green') sumApproved += approvedAmount;
 
                                 let amtHtml = originalAmount.toFixed(2);
-
                                 let appAmtHtml = '-';
                                 let appPctHtml = '-';
 
-                                if (bill.status === 'green') {
+                                if (bill.status === 'orange') {
+                                    // Checked state - Show deducted amount as pending approval
+                                    if(deduction > 0) {
+                                        appAmtHtml = `<span class="text-warning fw-bold">${approvedAmount.toFixed(2)}</span> <small>(Pending)</small>`;
+                                    } else {
+                                        appAmtHtml = `<span class="text-warning fw-bold">${approvedAmount.toFixed(2)}</span>`;
+                                    }
+                                    appPctHtml = approvedPercent + '%';
+                                } else if (bill.status === 'green') {
                                     if(deduction > 0) {
                                         appAmtHtml = `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>`;
                                     } else {
@@ -1902,6 +2001,19 @@
                                     }
                                     appPctHtml = approvedPercent + '%';
                                 } 
+
+                                // ACTION BUTTONS LOGIC
+                                // Admin (DIC) can Cut 'red' bills. SuperAdmin can Approve 'orange' bills.
+                                let btnAction = '';
+                                if (bill.status === 'red') {
+                                    if(currentUser.role === 'admin' || currentUser.role === 'superadmin') {
+                                        btnAction = `<button class="btn btn-secondary btn-sm" onclick="openCutModal('${billId}', '${bill.depot}', '${daId}', ${bill.totalAmount})">Check</button>`;
+                                    }
+                                } else if (bill.status === 'orange') {
+                                    if(currentUser.role === 'superadmin') {
+                                        btnAction = `<button class="btn btn-success btn-sm" onclick="approveBill('${billId}', '${bill.depot}', '${daId}')">Approve</button>`;
+                                    }
+                                }
 
                                 tr.innerHTML = `
                                     <td>${formatDate(bill.submitDate || bill.depDate)}</td>
@@ -1917,17 +2029,18 @@
                                     <td><b>${statusText}</b></td>
                                     <td>
                                         <button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>
-                                        <button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button>
-                                        <button class="btn btn-danger btn-sm" onclick="deleteBill('${billId}', '${bill.depot}', '${daId}')">Del</button>
-                                        ${bill.status === 'red' ? `<button class="btn btn-secondary btn-sm" onclick="openCutModal('${billId}', '${bill.depot}', '${daId}', ${bill.totalAmount})">Cut</button>` : ''}
+                                        ${btnAction}
                                     </td>`;
                             } else {
+                                // User View
                                 let amtHtml = originalAmount.toFixed(2);
 
                                 if (bill.status === 'red' || bill.status === 'draft') {
                                     actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button> `;
                                     actionBtns += `<button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button> `;
                                     actionBtns += `<button class="btn btn-danger btn-sm" onclick="deleteBill('${billId}', '${bill.depot}', '${daId}')">Del</button>`;
+                                } else if (bill.status === 'orange') {
+                                    actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>`;
                                 }
 
                                 tr.innerHTML = `
@@ -1945,7 +2058,7 @@
                     });
                 });
 
-                if(currentUser.role === 'admin') {
+                if(currentUser.role !== 'user') {
                     const totalClaimedPercent = sumSales > 0 ? ((sumClaimed / sumSales) * 100).toFixed(1) + "%" : "0%";
                     const totalApprovedPercent = sumSales > 0 ? ((sumApproved / sumSales) * 100).toFixed(1) + "%" : "0%";
 
@@ -1967,58 +2080,9 @@
             });
         }
 
-        // ================= PRINT LOGIC =================
-        function printBill(billId, depot, daId) {
-            database.ref('Bills/' + depot + '/' + daId + '/' + billId).once('value', (snapshot) => {
-                const bill = snapshot.val();
-                if(!bill) return;
-
-                let costPercent = "0%";
-                if (bill.invoiceVal > 0) costPercent = ((bill.totalAmount / bill.invoiceVal) * 100).toFixed(2) + "%";
-
-                document.getElementById('p_da_name').innerText = bill.daName; document.getElementById('p_depot').innerText = bill.depot;
-                document.getElementById('p_dep_date').innerText = formatDate(bill.depDate); document.getElementById('p_ret_date').innerText = formatDate(bill.retDate);
-                document.getElementById('p_submit_date').innerText = formatDate(bill.submitDate); document.getElementById('p_route').innerText = bill.route;
-                document.getElementById('p_mpo').innerText = bill.mpo; document.getElementById('p_summary').innerText = bill.summaryNo;
-                document.getElementById('p_inv_val').innerText = bill.invoiceVal; document.getElementById('p_ret_val').innerText = bill.returnVal;
-                document.getElementById('p_sold_val').innerText = bill.soldVal; document.getElementById('p_inv_qty').innerText = bill.invoiceQty;
-                document.getElementById('p_bundle_qty').innerText = bill.bundleQty || 0;
-                document.getElementById('p_total_amount').innerText = bill.totalAmount;
-                document.getElementById('p_total_words').innerText = numberToEnglish(bill.totalAmount) + " Taka Only";
-                document.getElementById('p_cost_percent').innerText = costPercent; document.getElementById('p_prepared_by').innerText = bill.daName;
-
-                const tbody = document.getElementById('p_expense_body'); tbody.innerHTML = '';
-                if(bill.expenses) {
-                    bill.expenses.forEach(exp => {
-                        if(!exp.date) return;
-                        const amt = parseFloat(exp.amount) || 0; const da = parseFloat(exp.da) || 0; const ded = parseFloat(exp.deduction) || 0;
-                        const origTotal = amt + da; const finalTotal = origTotal - ded;
-                        let totalDisplay = finalTotal;
-                        if(ded > 0) totalDisplay = `<span class="cut-text">${origTotal}</span> <b>${finalTotal}</b>`;
-                        tbody.innerHTML += `<tr><td style="padding: 2px; text-align: left;">${formatDate(exp.date)}</td><td style="padding: 2px; text-align: left;">${exp.from}</td><td style="padding: 2px; text-align: left;">${exp.to}</td><td style="padding: 2px; text-align: left;">${exp.mode}</td><td style="padding: 2px; text-align: left;">${amt}</td><td style="padding: 2px; text-align: left;">${da}</td><td style="padding: 2px; text-align: left; color:red;">${ded || ''}</td><td style="padding: 2px; text-align: left;">${totalDisplay}</td></tr>`;
-                    });
-                }
-                window.print();
-            });
-        }
-
-        function numberToEnglish(num) {
-            if(num === 0) return "Zero";
-            let a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
-            let b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
-            if ((num = num.toString()).length > 9) return 'Overflow';
-            let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
-            if (!n) return; 
-            let str = '';
-            str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
-            str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
-            str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
-            str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
-            str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
-            return str;
-        }
-
-        // ================= ADMIN DEDUCTION LOGIC =================
+        // ================= ADMIN DEDUCTION & APPROVAL LOGIC =================
+        
+        // 1. DIC/Admin Checks and Cuts -> Status becomes 'orange' (Checked)
         function openCutModal(billId, depot, daId, amount) {
             document.getElementById('edit_bill_id').value = billId; document.getElementById('edit_depot').value = depot;
             document.getElementById('edit_depot').dataset.daId = daId;
@@ -2080,10 +2144,79 @@
                 totalAmount: newTotalAmount, 
                 deduction: totalDeduction, 
                 originalAmount: originalAmt, 
-                status: 'green' 
+                status: 'orange', // Set status to Checked (Pending Approval)
+                checkedBy: currentUser.name // Save DIC Name
             }, (error) => {
-                if (error) alert("Failed"); else { alert("Payment Approved!"); bootstrap.Modal.getInstance(document.getElementById('cutBillModal')).hide(); }
+                if (error) alert("Failed"); else { alert("Checked! Sent for Approval."); bootstrap.Modal.getInstance(document.getElementById('cutBillModal')).hide(); }
             });
+        }
+
+        // 2. Super Admin Approves -> Status becomes 'green' (Approved)
+        function approveBill(billId, depot, daId) {
+            if(confirm("Approve this bill?")) {
+                database.ref('Bills/' + depot + '/' + daId + '/' + billId).update({
+                    status: 'green',
+                    approvedBy: currentUser.name // Save RSM Name
+                }, (error) => {
+                    if(error) alert("Error"); else alert("Bill Approved!");
+                });
+            }
+        }
+
+        // ================= PRINT LOGIC =================
+        function printBill(billId, depot, daId) {
+            database.ref('Bills/' + depot + '/' + daId + '/' + billId).once('value', (snapshot) => {
+                const bill = snapshot.val();
+                if(!bill) return;
+
+                let costPercent = "0%";
+                if (bill.invoiceVal > 0) costPercent = ((bill.totalAmount / bill.invoiceVal) * 100).toFixed(2) + "%";
+
+                document.getElementById('p_da_name').innerText = bill.daName; document.getElementById('p_depot').innerText = bill.depot;
+                document.getElementById('p_dep_date').innerText = formatDate(bill.depDate); document.getElementById('p_ret_date').innerText = formatDate(bill.retDate);
+                document.getElementById('p_submit_date').innerText = formatDate(bill.submitDate); document.getElementById('p_route').innerText = bill.route;
+                document.getElementById('p_mpo').innerText = bill.mpo; document.getElementById('p_summary').innerText = bill.summaryNo;
+                document.getElementById('p_inv_val').innerText = bill.invoiceVal; document.getElementById('p_ret_val').innerText = bill.returnVal;
+                document.getElementById('p_sold_val').innerText = bill.soldVal; document.getElementById('p_inv_qty').innerText = bill.invoiceQty;
+                document.getElementById('p_bundle_qty').innerText = bill.bundleQty || 0;
+                document.getElementById('p_total_amount').innerText = bill.totalAmount;
+                document.getElementById('p_total_words').innerText = numberToEnglish(bill.totalAmount) + " Taka Only";
+                document.getElementById('p_cost_percent').innerText = costPercent; 
+                document.getElementById('p_prepared_by').innerText = bill.daName;
+                
+                // Dynamic Signatories
+                document.getElementById('p_checked_by').innerText = bill.checkedBy || ''; // DIC Name
+                document.getElementById('p_approved_by').innerText = bill.approvedBy || ''; // RSM Name
+
+                const tbody = document.getElementById('p_expense_body'); tbody.innerHTML = '';
+                if(bill.expenses) {
+                    bill.expenses.forEach(exp => {
+                        if(!exp.date) return;
+                        const amt = parseFloat(exp.amount) || 0; const da = parseFloat(exp.da) || 0; const ded = parseFloat(exp.deduction) || 0;
+                        const origTotal = amt + da; const finalTotal = origTotal - ded;
+                        let totalDisplay = finalTotal;
+                        if(ded > 0) totalDisplay = `<span class="cut-text">${origTotal}</span> <b>${finalTotal}</b>`;
+                        tbody.innerHTML += `<tr><td style="padding: 2px; text-align: left;">${formatDate(exp.date)}</td><td style="padding: 2px; text-align: left;">${exp.from}</td><td style="padding: 2px; text-align: left;">${exp.to}</td><td style="padding: 2px; text-align: left;">${exp.mode}</td><td style="padding: 2px; text-align: left;">${amt}</td><td style="padding: 2px; text-align: left;">${da}</td><td style="padding: 2px; text-align: left; color:red;">${ded || ''}</td><td style="padding: 2px; text-align: left;">${totalDisplay}</td></tr>`;
+                    });
+                }
+                window.print();
+            });
+        }
+
+        function numberToEnglish(num) {
+            if(num === 0) return "Zero";
+            let a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+            let b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+            if ((num = num.toString()).length > 9) return 'Overflow';
+            let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+            if (!n) return; 
+            let str = '';
+                        str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
+            str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
+            str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
+            str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
+            str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+            return str;
         }
 
         // ================= ADD NEW USER =================
@@ -2096,7 +2229,7 @@
             const password = document.getElementById('new_user_pass').value.trim();
             const role = document.getElementById('new_user_role').value;
 
-            if (!name || !username || !password || !userIdManual) { alert("Fill required fields"); return; }
+            if (!name || !username || !password || !userIdManual) { alert("Fill required fields (ID, Name, Username, Password)"); return; }
             
             const newUserRef = database.ref('Users').push();
             const userData = { 
@@ -2115,8 +2248,9 @@
             }
 
             newUserRef.set(userData, (error) => {
-                if(error) alert("Error"); else { 
-                    alert("User Created!"); 
+                if(error) alert("Error creating user"); else { 
+                    alert("User Created Successfully!"); 
+                    // Clear Form
                     document.getElementById('new_user_id').value = ''; 
                     document.getElementById('new_user_name').value = ''; 
                     document.getElementById('new_user_phone').value = '';
@@ -2127,7 +2261,7 @@
                     document.getElementById('new_user_photo').value = '';
                     document.getElementById('photo_preview').classList.add('hidden');
                     userPhotoBase64 = null;
-                    loadDAListForIOU(); 
+                    loadDAListForIOU(); // Refresh lists
                 }
             });
         }
