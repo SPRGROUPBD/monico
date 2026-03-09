@@ -161,6 +161,18 @@
             <div class="tab-pane fade" id="dashTab" role="tabpanel">
                 <!-- Admin Dashboard Content -->
                 <div class="admin-only">
+                    
+                    <!-- Dashboard Month Filter -->
+                    <div class="row mb-2 no-print">
+                        <div class="col-md-4 offset-md-8">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">View Month</span>
+                                <input type="month" id="dash_filter_month" class="form-control" onchange="loadAdminDashboardData()">
+                                <button class="btn btn-outline-secondary" onclick="document.getElementById('dash_filter_month').value=''; loadAdminDashboardData();">All</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row mb-3">
                         <div class="col-4">
                             <div class="card dash-card text-white bg-dash-total h-100">
@@ -207,7 +219,7 @@
                         <div class="col-md-6 mb-3">
                             <!-- IOU Entry Form -->
                             <div class="card dash-card no-print mb-3">
-                                <div class="card-header bg-info text-white py-2">IOU Entry</div>
+                                <div class="card-header bg-info text-white py-2">IOUEntry</div>
                                 <div class="card-body">
                                     <div class="row g-2 mb-2">
                                         <div class="col-6 col-md-3"><label>Date</label><input type="date" id="iou_date" class="form-control form-control-sm"></div>
@@ -526,6 +538,10 @@
                                     <option value="">All DAs</option>
                                 </select>
                             </div>
+                             <div class="col-md-4">
+                                <label class="fw-bold text-muted">Month</label>
+                                <input type="month" id="filter_history_month" class="form-control form-control-sm" onchange="loadBills()">
+                            </div>
                             <div class="col-md-2">
                                 <button onclick="resetHistoryFilter()" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
                             </div>
@@ -544,6 +560,28 @@
 
             <!-- NEW Tab: Approved History (Checked & Approved) -->
             <div class="tab-pane fade" id="approvedHistoryTab" role="tabpanel">
+                
+                <!-- Approved History Filters -->
+                <div class="card dash-card no-print mb-2 admin-superadmin-only">
+                    <div class="card-body p-2">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <label class="fw-bold text-muted">Filter by DA</label>
+                                <select id="filter_approved_da" class="form-select form-select-sm" onchange="loadBills()">
+                                    <option value="">All DAs</option>
+                                </select>
+                            </div>
+                             <div class="col-md-4">
+                                <label class="fw-bold text-muted">Month</label>
+                                <input type="month" id="filter_approved_month" class="form-control form-control-sm" onchange="loadBills()">
+                            </div>
+                            <div class="col-md-2">
+                                <button onclick="resetApprovedFilter()" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card dash-card no-print"><div class="card-body p-1">
                     <h6 class="text-center text-muted mb-1">Checked & Approved Bills</h6>
                     <div class="table-responsive"><table class="table table-bordered table-hover table-sm">
@@ -565,13 +603,10 @@
                     <div class="card-header bg-primary text-white py-2">IOU List & Management</div>
                     <div class="card-body">
                         <div class="row g-2 mb-2 p-2 bg-light border rounded align-items-end">
-                            <div class="col-6 col-md-3">
-                                <label class="fw-bold text-muted">From Date</label>
-                                <input type="date" id="filter_iou_from" class="form-control form-control-sm" onchange="loadAdminIOU()">
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <label class="fw-bold text-muted">To Date</label>
-                                <input type="date" id="filter_iou_to" class="form-control form-control-sm" onchange="loadAdminIOU()">
+                            <!-- Changed to Month Filter -->
+                             <div class="col-6 col-md-4">
+                                <label class="fw-bold text-muted">Filter by Month</label>
+                                <input type="month" id="filter_iou_month" class="form-control form-control-sm" onchange="loadAdminIOU()">
                             </div>
                             <div class="col-12 col-md-4">
                                 <label class="fw-bold text-muted">Filter by DA</label>
@@ -844,6 +879,16 @@
         let modalSales = 0;
         let modalUserBill = 0;
         let modalIou = 0;
+
+        // ================= HELPER FUNCTIONS =================
+        
+        // Check if a date (YYYY-MM-DD) falls in a month (YYYY-MM)
+        function isDateInMonth(dateStr, monthVal) {
+            if (!monthVal) return true; // If no filter, show all
+            if (!dateStr) return false;
+            // dateStr is YYYY-MM-DD, monthVal is YYYY-MM
+            return dateStr.startsWith(monthVal);
+        }
 
         // ================= AUTO SAVE LOGIC =================
         let autoSaveTimeout;
@@ -1287,6 +1332,8 @@
 
         // ================= DASHBOARD STATS =================
         function loadDashboardStats() {
+            const monthFilter = document.getElementById('dash_filter_month')?.value || '';
+
             database.ref('Bills').on('value', (snapshot) => {
                 let totalBills = 0;
                 let pendingBills = 0; 
@@ -1300,6 +1347,10 @@
                             if(!daStats[daId]) daStats[daId] = { name: 'Unknown', total: 0, pending: 0, approved: 0, amount: 0 };
                             daSnapshot.forEach((billSnapshot) => {
                                 const bill = billSnapshot.val();
+                                
+                                // Apply Month Filter
+                                if (!isDateInMonth(bill.submitDate || bill.depDate, monthFilter)) return;
+
                                 if(bill.daName) daStats[daId].name = bill.daName;
                                 totalBills++;
                                 daStats[daId].total++;
@@ -1325,15 +1376,20 @@
                 tbody.innerHTML = '';
                 const sortedDAs = Object.values(daStats).sort((a,b) => a.name.localeCompare(b.name));
                 sortedDAs.forEach(da => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td><i class="bi bi-person-badge me-1"></i>${da.name}</td><td class="text-center"><span class="badge bg-primary">${da.total}</span></td><td class="text-center"><span class="badge bg-warning text-dark">${da.pending}</span></td><td class="text-center"><span class="badge bg-success">${da.approved}</span></td><td class="text-end fw-bold">${da.amount.toFixed(2)}</td>`;
-                    tbody.appendChild(tr);
+                    // Only show if they have activity in the selected month
+                    if(da.total > 0){
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td><i class="bi bi-person-badge me-1"></i>${da.name}</td><td class="text-center"><span class="badge bg-primary">${da.total}</span></td><td class="text-center"><span class="badge bg-warning text-dark">${da.pending}</span></td><td class="text-center"><span class="badge bg-success">${da.approved}</span></td><td class="text-end fw-bold">${da.amount.toFixed(2)}</td>`;
+                        tbody.appendChild(tr);
+                    }
                 });
-                if(sortedDAs.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center">No Bills Found</td></tr>';
+                if(sortedDAs.length === 0 || totalBills === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center">No Data for selected period</td></tr>';
             });
         }
 
         function loadApprovedBillSummary() {
+            // This function currently loads ALL time data. 
+            // Keeping it global as it's a summary view (IOU vs Bill balance).
             database.ref('IOU_List').on('value', (iouSnap) => {
                 const iouData = {};
                 if(iouSnap.exists()) {
@@ -1605,11 +1661,15 @@
             database.ref('Users').once('value', snap => {
                 const selectAdd = document.getElementById('iou_da_name');
                 const selectFilter = document.getElementById('filter_iou_da');
+                const selectHistory = document.getElementById('filter_history_da');
+                const selectApproved = document.getElementById('filter_approved_da');
                 
                 daListCache = {}; 
 
                 if(selectAdd) selectAdd.innerHTML = '<option value="">Select DA</option>'; 
                 if(selectFilter) selectFilter.innerHTML = '<option value="">All DA</option>';
+                if(selectHistory) selectHistory.innerHTML = '<option value="">All DAs</option>';
+                if(selectApproved) selectApproved.innerHTML = '<option value="">All DAs</option>';
                 
                 if(snap.exists()){
                     snap.forEach(child => {
@@ -1619,23 +1679,12 @@
                             const opt = `<option value="${child.key}">${u.name}</option>`;
                             if(selectAdd) selectAdd.innerHTML += opt; 
                             if(selectFilter) selectFilter.innerHTML += opt;
+                            if(selectHistory) selectHistory.innerHTML += opt;
+                            if(selectApproved) selectApproved.innerHTML += opt;
                         }
                     });
                 }
-
-                populateHistoryDAFilter();
             });
-        }
-
-        function populateHistoryDAFilter() {
-            const select = document.getElementById('filter_history_da');
-            if(!select) return;
-            const currentVal = select.value;
-            select.innerHTML = '<option value="">All DAs</option>';
-            Object.keys(daListCache).forEach(id => {
-                 select.innerHTML += `<option value="${id}">${daListCache[id]}</option>`;
-            });
-            select.value = currentVal;
         }
 
         function saveIOU() {
@@ -1690,10 +1739,16 @@
         }
 
         function cancelIOUEdit() { clearIOUForm(); }
-        function resetIOUFilter() { document.getElementById('filter_iou_from').value = ''; document.getElementById('filter_iou_to').value = ''; document.getElementById('filter_iou_da').value = ''; loadAdminIOU(); }
+        function resetIOUFilter() { 
+            document.getElementById('filter_iou_month').value = ''; 
+            document.getElementById('filter_iou_da').value = ''; 
+            loadAdminIOU(); 
+        }
 
         function loadAdminIOU() {
-            const fFrom = document.getElementById('filter_iou_from').value; const fTo = document.getElementById('filter_iou_to').value; const fDa = document.getElementById('filter_iou_da').value;
+            const fMonth = document.getElementById('filter_iou_month').value;
+            const fDa = document.getElementById('filter_iou_da').value;
+            
             database.ref('IOU_List').on('value', snap => {
                 const tbody = document.getElementById('iou_admin_table_body'); tbody.innerHTML = '';
                 let tSales=0, tRet=0, tSold=0, tQty=0, tBQty=0, tTaka=0, count=1;
@@ -1701,7 +1756,9 @@
                 snap.forEach(child => {
                     const d = child.val();
                     let show = true;
-                    if(fFrom && d.date < fFrom) show = false; if(fTo && d.date > fTo) show = false; if(fDa && d.daId !== fDa) show = false;
+                    if(fMonth && !isDateInMonth(d.date, fMonth)) show = false; 
+                    if(fDa && d.daId !== fDa) show = false;
+                    
                     if(show) {
                         const iSold = d.soldVal || ((d.sales || 0) - (d.returnVal || 0));
                         tSales += (d.sales || 0); tRet += (d.returnVal || 0); tSold += iSold; tQty += d.qty || 0; tBQty += d.bundleQty || 0; tTaka += d.taka || 0;
@@ -1765,6 +1822,13 @@
         
         function resetHistoryFilter() {
             document.getElementById('filter_history_da').value = '';
+            document.getElementById('filter_history_month').value = '';
+            loadBills();
+        }
+
+        function resetApprovedFilter() {
+            document.getElementById('filter_approved_da').value = '';
+            document.getElementById('filter_approved_month').value = '';
             loadBills();
         }
 
@@ -1773,7 +1837,11 @@
             const tableBody = document.getElementById('bill_table_body');
             const approvedTableBody = document.getElementById('approved_bill_table_body');
             
-            const selectedDA = document.getElementById('filter_history_da')?.value || '';
+            // Read Filters
+            const historyDA = document.getElementById('filter_history_da')?.value || '';
+            const historyMonth = document.getElementById('filter_history_month')?.value || '';
+            const approvedDA = document.getElementById('filter_approved_da')?.value || '';
+            const approvedMonth = document.getElementById('filter_approved_month')?.value || '';
 
             tableBody.innerHTML = '<tr><td colspan="12" class="text-center">Loading...</td></tr>';
             approvedTableBody.innerHTML = '<tr><td colspan="11" class="text-center">Loading...</td></tr>';
@@ -1852,19 +1920,16 @@
                             } 
                             // Logic for Admin
                             else if (currentUser.role === 'admin') {
-                                // Admin Filter
-                                if (selectedDA && bill.daId !== selectedDA) return;
-
-                                // Prepare Row
-                                const tr = document.createElement('tr');
-                                let statusText = bill.status.toUpperCase();
-                                if(bill.status === 'red') statusText = "PENDING";
-                                if(bill.status === 'orange') statusText = "CHECKED";
-                                if(bill.status === 'green') statusText = "APPROVED";
-                                
-                                // History Tab (Pending/Red Only)
+                                // Prepare Row for History Tab
                                 if(bill.status === 'red') {
+                                    // Apply Filters
+                                    if (historyDA && bill.daId !== historyDA) return;
+                                    if (historyMonth && !isDateInMonth(bill.submitDate || bill.depDate, historyMonth)) return;
+
+                                    const tr = document.createElement('tr');
                                     tr.classList.add('status-red');
+                                    let statusText = "PENDING";
+                                    
                                     let actionBtns = '';
                                     actionBtns += `<button class="btn btn-warning btn-sm" onclick="editBill('${billId}', '${bill.depot}', '${daId}')">Edit</button> `;
                                     actionBtns += `<button class="btn btn-secondary btn-sm" onclick="openCutModal('${billId}', '${bill.depot}', '${daId}')">Check/Deduct</button> `;
@@ -1885,9 +1950,13 @@
                                 
                                 // Approved History Tab (Orange & Green)
                                 if(bill.status === 'orange' || bill.status === 'green') {
+                                     // Apply Approved Filters
+                                     if (approvedDA && bill.daId !== approvedDA) return;
+                                     if (approvedMonth && !isDateInMonth(bill.submitDate || bill.depDate, approvedMonth)) return;
+
                                     const trApp = document.createElement('tr');
-                                    if(bill.status === 'orange') trApp.classList.add('status-orange');
-                                    else trApp.classList.add('status-green');
+                                    if(bill.status === 'orange') { trApp.classList.add('status-orange'); statusText = "CHECKED"; }
+                                    else { trApp.classList.add('status-green'); statusText = "APPROVED"; }
 
                                     let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
                                     let actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>`;
@@ -1912,16 +1981,18 @@
                             else {
                                 // History Tab (Orange - Checked by DIC, Pending for RSM)
                                 if(bill.status === 'orange') {
+                                    // No specific filter for History tab on Super Admin yet, or use generic ones? 
+                                    // Assuming Super Admin uses the same filters as History tab for consistency
+                                    if (historyDA && bill.daId !== historyDA) return;
+                                    if (historyMonth && !isDateInMonth(bill.submitDate || bill.depDate, historyMonth)) return;
+
                                     const tr = document.createElement('tr');
                                     tr.classList.add('status-orange');
                                     
                                     let actionBtns = '';
-                                    // Recheck Button - Opens modal to adjust deduction
                                     actionBtns += `<button class="btn btn-warning btn-sm" onclick="openCutModal('${billId}', '${bill.depot}', '${daId}')">Recheck</button> `;
-                                    // Approve Button
                                     actionBtns += `<button class="btn btn-success btn-sm" onclick="approveBill('${billId}', '${bill.depot}', '${daId}')">Approve</button>`;
                                     
-                                    // Logic for Payable Display
                                     let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
 
                                     tr.innerHTML = `
@@ -1941,6 +2012,10 @@
                                 
                                 // Approved History Tab (Green)
                                 if(bill.status === 'green') {
+                                    // Apply Approved Filters
+                                    if (approvedDA && bill.daId !== approvedDA) return;
+                                    if (approvedMonth && !isDateInMonth(bill.submitDate || bill.depDate, approvedMonth)) return;
+
                                     const trApp = document.createElement('tr');
                                     trApp.classList.add('status-green');
                                     let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
