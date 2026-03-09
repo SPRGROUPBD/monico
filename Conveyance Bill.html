@@ -47,7 +47,7 @@ button.edit-btn{background:#f39c12; color:white; border:none; padding:5px 10px; 
 button.print-btn{background:#3498db; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; }
 button.secondary{background:#3498db; color:white; border:none; padding:8px 12px; cursor:pointer; border-radius:4px; font-size:12px; margin-bottom:10px; white-space: nowrap; }
 
-table{width:100%; border-collapse:collapse; margin-top:15px; min-width: 600px; } /* min-width for mobile scroll */
+table{width:100%; border-collapse:collapse; margin-top:15px; min-width: 500px; }
 table th, table td{border:1px solid #ddd; padding:8px; text-align:center; font-size:13px; }
 table th{background:#eee; }
 table input, table select{ border: 1px solid #ccc; text-align:center; }
@@ -75,7 +75,7 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
     display: flex;
     flex-direction: column;
     gap: 5px;
-    min-width: 100px;
+    min-width: 80px;
 }
 .quick-entry-bar label {
     font-size: 11px;
@@ -91,19 +91,27 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
 }
 
 @media print {
-    body { background: #fff; }
+    body { background: #fff; margin: 0; padding: 0; }
     .topbar, .nav, .container, .no-print { display: none !important; }
     .print-container { display: block !important; width: 100%; }
     
-    @page { size: A5 portrait; margin: 10mm; }
-    body { font-family: Arial; }
-    .bill { width: 100%; border: 2px solid #000; padding: 6px; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #000; margin-bottom: 5px; }
-    .title { font-size: 20px; font-weight: bold; width: 100%; text-align: center; }
+    /* Page Size: A4 */
+    @page { 
+        size: A4; 
+        margin: 10mm; 
+    }
     
-    /* ALL BORDERS SOLID BLACK */
-    .info-table, .info-table th, .info-table td { border: 1px solid #000 !important; padding: 4px; font-size: 12px; border-collapse: collapse; }
-    .details-table, .details-table th, .details-table td { border: 1px solid #000 !important; padding: 4px; font-size: 12px; border-collapse: collapse; }
+    body { font-family: Arial; }
+    .bill { width: 100%; border: 2px solid #000; padding: 8px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; margin-bottom: 10px; }
+    .title { font-size: 24px; font-weight: bold; width: 100%; text-align: center; }
+    
+    /* ALL TABLE BORDERS */
+    .info-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+    .info-table th, .info-table td { border: 1px solid #000; padding: 6px; font-size: 14px; text-align: left; }
+    
+    .details-table { border-collapse: collapse; width: 100%; }
+    .details-table th, .details-table td { border: 1px solid #000; padding: 6px; font-size: 14px; }
     
     .total-col { text-align: right; font-weight: bold; }
     
@@ -112,14 +120,14 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         gap: 10px;
-        margin-top: 30px;
+        margin-top: 40px;
         text-align: center;
-        font-size: 12px;
+        font-size: 14px;
     }
     .footer-box {
         border-top: 1px solid #000;
-        padding-top: 5px;
-        margin-top: 20px; /* Space for signature */
+        padding-top: 2px;
+        margin-top: 25px; 
     }
 }
 </style>
@@ -169,6 +177,7 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
 <div class="form-group"><label>Designation</label><input type="text" id="entryDesig" value="DEPOT IN-CHARGE"></div>
 <div class="form-group"><label>Department</label><input type="text" id="entryDept" value="Distribution"></div>
 <div class="form-group"><label>Destination Point</label><input type="text" id="entryDestPoint" placeholder="Enter Destination"></div>
+<div class="form-group"><label>Reference</label><input type="text" id="entryRef" placeholder="IOU Reference or Bill Ref"></div>
 <div class="form-group"><label>Bill Date</label><input type="date" id="entryDate"></div>
 </div>
 
@@ -201,10 +210,6 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
         <input type="number" id="quickAmount" placeholder="0">
     </div>
     <div class="input-box">
-        <label>Reference</label>
-        <input type="text" id="quickRef" placeholder="Ref">
-    </div>
-    <div class="input-box">
         <label>Remarks</label>
         <input type="text" id="quickRemarks" placeholder="Remarks">
     </div>
@@ -216,9 +221,9 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
 
 <div class="table-responsive">
     <table id="travelTable">
-    <thead><tr><th>From</th><th>To</th><th>Mode Of Transport</th><th>Amount(Tk)</th><th>Reference</th><th>Remarks</th><th>X</th></tr></thead>
+    <thead><tr><th>From</th><th>To</th><th>Mode Of Transport</th><th>Amount(Tk)</th><th>Remarks</th><th>X</th></tr></thead>
     <tbody></tbody>
-    <tfoot><tr class="total-row"><td colspan="3" style="text-align:right;">Total =</td><td id="grandTotal">0</td><td colspan="2"></td></tr></tfoot>
+    <tfoot><tr class="total-row"><td colspan="3" style="text-align:right;">Total =</td><td id="grandTotal">0</td><td></td></tr></tfoot>
     </table>
 </div>
 
@@ -228,7 +233,7 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
 </div>
 
 <!-- ========================================= -->
-<!-- BILL HISTORY (NEW PAGE) -->
+<!-- BILL HISTORY -->
 <!-- ========================================= -->
 <div id="history" class="card hidden">
 <h3 class="section-title">Conveyance Bill History</h3>
@@ -244,9 +249,9 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
 <!-- IOU ENTRY -->
 <!-- ========================================= -->
 <div id="iou" class="card hidden">
-<h3 class="section-title">IOUEntry Form</h3>
+<h3 class="section-title">IOU Entry Form</h3>
 <div class="form-grid">
-<div class="form-group"><label>IOU No:</label><input type="text" id="iouNo" placeholder="e.g. IOU-001"></div>
+<div class="form-group"><label>IOU No:</label><input type="text" id="iouNo" placeholder="Auto Generated" readonly></div>
 <div class="form-group"><label>Date:</label><input type="date" id="iouDate"></div>
 <div class="form-group"><label>Name:</label><select id="iouName"><option value="">Select Employee</option><option>Md Sajjad Ahmed</option></select></div>
 <div class="form-group"><label>Depot:</label><select id="iouDepot"><option value="Kushtia">Kushtia</option><option>Other</option></select></div>
@@ -280,11 +285,11 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
             <div class="title">Conveyance Bill</div>
         </div>
         
-        <table class="info-table" style="margin-bottom:5px;">
+        <table class="info-table">
             <tr>
                 <td style="width:120px">Name</td>
                 <td id="pt-name"></td>
-                <td style="width:100px">Depot</td>
+                <td style="width:80px">Depot</td>
                 <td id="pt-depot"></td>
             </tr>
             <tr>
@@ -294,10 +299,14 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
                 <td id="pt-dept"></td>
             </tr>
             <tr>
-                <td>Destination Point</td>
+                <td>Destination</td>
                 <td id="pt-dest"></td>
                 <td>Bill Date</td>
                 <td id="pt-date"></td>
+            </tr>
+             <tr>
+                <td>Reference</td>
+                <td colspan="3" id="pt-ref"></td>
             </tr>
         </table>
 
@@ -308,7 +317,6 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
                     <th>To</th>
                     <th>Mode Of Transport</th>
                     <th>Amount(Tk)</th>
-                    <th>Reference</th>
                     <th>Remarks</th>
                 </tr>
             </thead>
@@ -317,15 +325,14 @@ table input, table select{ border: 1px solid #ccc; text-align:center; }
                 <tr>
                     <td colspan="3" class="total-col">Total =</td>
                     <td id="pt-total"></td>
-                    <td colspan="2"></td>
+                    <td></td>
                 </tr>
             </tfoot>
         </table>
 
         <table style="margin-top:5px; border:none; width:100%;">
             <tr>
-                <td style="width:100px; border:none; text-align:left; font-weight:bold;">In Words:</td>
-                <td id="pt-words" style="border:none; text-align:left;"></td>
+                <td style="border:none; text-align:left; font-weight:bold;">In Words: <span id="pt-words" style="font-weight:normal;"></span></td>
             </tr>
         </table>
 
@@ -370,15 +377,19 @@ function showPage(page){
     document.getElementById(page).classList.remove("hidden");
     document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
     document.getElementById("nav-" + page).classList.add("active");
+
+    // Auto generate IOU number when switching to IOU page if field is empty
+    if(page === 'iou' && !document.getElementById("editIouId").value) {
+        generateIouNo();
+    }
 }
 
 // ===== DATE FORMATTER =====
-// Converts YYYY-MM-DD to MM-DD-YYYY
 function formatDate(dateStr) {
     if(!dateStr) return "-";
     const parts = dateStr.split('-');
     if(parts.length === 3) {
-        return `${parts[1]}-${parts[2]}-${parts[0]}`;
+        return `${parts[1]}-${parts[2]}-${parts[0]}`; // MM-DD-YYYY
     }
     return dateStr;
 }
@@ -388,6 +399,10 @@ window.onload = function() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById("entryDate").value = today;
     document.getElementById("iouDate").value = today;
+    
+    // Generate first IOU number on load
+    generateIouNo();
+    
     loadBills();
     loadIous();
 };
@@ -425,8 +440,12 @@ function loadIous() {
 function generateIouNo() {
     db.ref('ious').limitToLast(1).once('value', (snapshot) => {
         if(snapshot.exists()){
-            const lastEntry = Object.values(snapshot.val())[0];
-            const lastNo = parseInt(lastEntry.no.replace('IOU-', ''));
+            const data = snapshot.val();
+            // Get the actual key/value pair
+            const keys = Object.keys(data);
+            const lastItem = data[keys[0]];
+            
+            const lastNo = parseInt(lastItem.no.replace('IOU-', ''));
             document.getElementById("iouNo").value = "IOU-" + (lastNo + 1).toString().padStart(3, '0');
         } else {
             document.getElementById("iouNo").value = "IOU-001";
@@ -485,7 +504,7 @@ function resetIouForm() {
     document.getElementById("iouPurpose").value = "";
     document.getElementById("iouAmount").value = "";
     document.getElementById("iouRef").value = "";
-    generateIouNo();
+    generateIouNo(); // Generate new number on reset
 }
 
 // ===== CONVEYANCE LOGIC =====
@@ -496,19 +515,17 @@ function processQuickEntry() {
     let to = document.getElementById("quickTo").value;
     let mode = document.getElementById("quickMode").value;
     let amount = document.getElementById("quickAmount").value;
-    let ref = document.getElementById("quickRef").value; // New Field
     let remarks = document.getElementById("quickRemarks").value;
 
     if(!amount) return alert("Enter amount at least.");
 
-    let data = { from, to, mode, amount, ref, remarks }; // Updated object
+    let data = { from, to, mode, amount, remarks };
     
     addTravelRow(data);
 
     document.getElementById("quickFrom").value = "";
     document.getElementById("quickTo").value = "";
     document.getElementById("quickAmount").value = "";
-    document.getElementById("quickRef").value = "";
     document.getElementById("quickRemarks").value = "";
 }
 
@@ -531,7 +548,6 @@ function addTravelRow(data = {}) {
             </select>
         </td>
         <td><input type="number" class="amount-input" oninput="calculateTotal()" value="${data.amount || ''}"></td>
-        <td><input type="text" value="${data.ref || ''}"></td>
         <td><input type="text" value="${data.remarks || ''}"></td>
         <td><button class="delete" onclick="removeRow(this)">X</button></td>
     `;
@@ -565,8 +581,7 @@ function saveConveyanceBill() {
             to: r.cells[1].querySelector('input').value,
             mode: r.cells[2].querySelector('select').value,
             amount: parseFloat(r.cells[3].querySelector('input').value) || 0,
-            ref: r.cells[4].querySelector('input').value, // New Field
-            remarks: r.cells[5].querySelector('input').value
+            remarks: r.cells[4].querySelector('input').value
         });
     });
 
@@ -577,6 +592,7 @@ function saveConveyanceBill() {
         dest: document.getElementById("entryDestPoint").value,
         designation: document.getElementById("entryDesig").value,
         department: document.getElementById("entryDept").value,
+        reference: document.getElementById("entryRef").value,
         total: calculateTotal(),
         rows: travelRows,
         iouId: linkedIouKey || null
@@ -610,6 +626,7 @@ function editBill(key, data) {
     document.getElementById("entryDesig").value = data.designation || "";
     document.getElementById("entryDept").value = data.department || "";
     document.getElementById("entryDestPoint").value = data.dest;
+    document.getElementById("entryRef").value = data.reference || "";
     document.getElementById("entryDate").value = data.date;
     
     linkedIouKey = data.iouId || "";
@@ -618,8 +635,7 @@ function editBill(key, data) {
     if(data.rows && data.rows.length > 0) {
         data.rows.forEach(r => addTravelRow(r));
     } else {
-        // Legacy support: add empty row
-        addTravelRow({from: '', to: '', mode: 'Auto', amount: 0, ref: '', remarks: ''});
+        addTravelRow({from: '', to: '', mode: 'Auto', amount: 0, remarks: ''});
     }
     
     showPage('entry');
@@ -651,7 +667,7 @@ function resetBillForm() {
     document.getElementById("entryDepot").value = "KUSHTIA";
     document.getElementById("entryDesig").value = "DEPOT IN-CHARGE";
     document.getElementById("entryDept").value = "Distribution";
-    
+    document.getElementById("entryRef").value = "";
     document.getElementById("entryDestPoint").value = "";
     document.getElementById("entryDate").value = new Date().toISOString().split('T')[0];
     document.querySelector("#travelTable tbody").innerHTML = "";
@@ -663,6 +679,7 @@ function makeBill(key, data) {
     document.getElementById("entryName").value = data.name;
     document.getElementById("entryDepot").value = data.depot;
     document.getElementById("entryDestPoint").value = data.purpose;
+    document.getElementById("entryRef").value = data.ref || "";
     document.getElementById("entryDate").value = data.date;
     showPage('entry');
     alert("IOU loaded. Please complete details and Save.");
@@ -675,7 +692,8 @@ function printBill(key, data) {
     document.getElementById('pt-desig').innerText = data.designation || 'N/A';
     document.getElementById('pt-dept').innerText = data.department || 'N/A';
     document.getElementById('pt-dest').innerText = data.dest;
-    document.getElementById('pt-date').innerText = formatDate(data.date); // Formatted Date
+    document.getElementById('pt-ref').innerText = data.reference || "-";
+    document.getElementById('pt-date').innerText = formatDate(data.date); 
     document.getElementById('pt-total').innerText = data.total.toFixed(2);
     document.getElementById('pt-words').innerText = numberToWords(Math.round(data.total));
 
@@ -690,7 +708,6 @@ function printBill(key, data) {
                     <td>${r.to}</td>
                     <td>${r.mode}</td>
                     <td>${r.amount.toFixed(2)}</td>
-                    <td>${r.ref || ''}</td>
                     <td>${r.remarks}</td>
                 </tr>
             `;
@@ -700,7 +717,6 @@ function printBill(key, data) {
             <tr>
                 <td>-</td><td>-</td><td>-</td>
                 <td>${data.total.toFixed(2)}</td>
-                <td></td>
                 <td></td>
             </tr>
         `;
