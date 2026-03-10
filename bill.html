@@ -97,6 +97,9 @@
         .summary-table th { background-color: #e9ecef; font-size: 12px; text-align: center; }
         .summary-table td { font-size: 13px; text-align: center; font-weight: bold; }
         .summary-table .value-highlight { color: #0d6efd; font-size: 14px; }
+        
+        /* Footer Total Style */
+        tfoot td { font-weight: bold; background-color: #e9ecef; }
     </style>
 </head>
 <body>
@@ -580,6 +583,7 @@
                     <div class="table-responsive"><table class="table table-bordered table-hover table-sm">
                         <thead id="bill_table_head" class="table-dark"></thead>
                         <tbody id="bill_table_body"><tr><td colspan="12" class="text-center">Loading...</td></tr></tbody>
+                        <!-- Footer will be populated by JS -->
                         <tfoot id="bill_table_foot" class="table-success fw-bold"></tfoot>
                     </table></div>
                 </div></div>
@@ -620,6 +624,8 @@
                             </tr>
                         </thead>
                         <tbody id="approved_bill_table_body"><tr><td colspan="11" class="text-center">Loading...</td></tr></tbody>
+                        <!-- Added Footer for Total -->
+                        <tfoot id="approved_bill_table_foot" class="table-success fw-bold"></tfoot>
                     </table></div>
                 </div></div>
             </div>
@@ -1922,7 +1928,9 @@
         function loadBills() {
             const tableHead = document.getElementById('bill_table_head');
             const tableBody = document.getElementById('bill_table_body');
+            const tableFoot = document.getElementById('bill_table_foot');
             const approvedTableBody = document.getElementById('approved_bill_table_body');
+            const approvedTableFoot = document.getElementById('approved_bill_table_foot');
             
             // Read Filters
             const historyDA = document.getElementById('filter_history_da')?.value || '';
@@ -1933,6 +1941,10 @@
             tableBody.innerHTML = '<tr><td colspan="12" class="text-center">Loading...</td></tr>';
             approvedTableBody.innerHTML = '<tr><td colspan="11" class="text-center">Loading...</td></tr>';
             
+            // Initialize Totals
+            let historyTotals = { iou: 0, sales: 0, userBill: 0, payable: 0 };
+            let approvedTotals = { iou: 0, sales: 0, userBill: 0, payable: 0 };
+
             // Table Headers based on Role
             if (currentUser.role === 'user') {
                 tableHead.innerHTML = `<tr><th>Date</th><th>DA Name</th><th>Depot</th><th>Route</th><th>Amount</th><th>Status</th></tr>`;
@@ -1947,11 +1959,16 @@
             billsRef.on('value', (snapshot) => {
                 tableBody.innerHTML = '';
                 approvedTableBody.innerHTML = '';
+                // Reset Totals
+                historyTotals = { iou: 0, sales: 0, userBill: 0, payable: 0 };
+                approvedTotals = { iou: 0, sales: 0, userBill: 0, payable: 0 };
                 
                 if (!snapshot.exists()) { 
                     const colSpan = currentUser.role === 'user' ? '6' : '12';
                     tableBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center text-danger">No Bills Found</td></tr>`; 
                     approvedTableBody.innerHTML = `<tr><td colspan="11" class="text-center text-danger">No Bills Found</td></tr>`;
+                    tableFoot.innerHTML = '';
+                    approvedTableFoot.innerHTML = '';
                     return; 
                 }
 
@@ -2013,6 +2030,13 @@
                                     if (historyDA && bill.daId !== historyDA) return;
                                     if (historyMonth && !isDateInMonth(bill.submitDate || bill.depDate, historyMonth)) return;
 
+                                    // Accumulate Totals
+                                    historyTotals.iou += iou;
+                                    historyTotals.sales += sales;
+                                    historyTotals.userBill += originalAmount;
+                                    // Payable is same as user bill for pending bills
+                                    historyTotals.payable += originalAmount; 
+
                                     const tr = document.createElement('tr');
                                     tr.classList.add('status-red');
                                     let statusText = "PENDING";
@@ -2040,6 +2064,12 @@
                                      // Apply Approved Filters
                                      if (approvedDA && bill.daId !== approvedDA) return;
                                      if (approvedMonth && !isDateInMonth(bill.submitDate || bill.depDate, approvedMonth)) return;
+
+                                     // Accumulate Totals
+                                     approvedTotals.iou += iou;
+                                     approvedTotals.sales += sales;
+                                     approvedTotals.userBill += originalAmount;
+                                     approvedTotals.payable += approvedAmount;
 
                                     const trApp = document.createElement('tr');
                                     if(bill.status === 'orange') { trApp.classList.add('status-orange'); statusText = "CHECKED"; }
@@ -2073,6 +2103,12 @@
                                     if (historyDA && bill.daId !== historyDA) return;
                                     if (historyMonth && !isDateInMonth(bill.submitDate || bill.depDate, historyMonth)) return;
 
+                                    // Accumulate Totals
+                                    historyTotals.iou += iou;
+                                    historyTotals.sales += sales;
+                                    historyTotals.userBill += originalAmount;
+                                    historyTotals.payable += approvedAmount;
+
                                     const tr = document.createElement('tr');
                                     tr.classList.add('status-orange');
                                     
@@ -2103,6 +2139,12 @@
                                     if (approvedDA && bill.daId !== approvedDA) return;
                                     if (approvedMonth && !isDateInMonth(bill.submitDate || bill.depDate, approvedMonth)) return;
 
+                                    // Accumulate Totals
+                                    approvedTotals.iou += iou;
+                                    approvedTotals.sales += sales;
+                                    approvedTotals.userBill += originalAmount;
+                                    approvedTotals.payable += approvedAmount;
+
                                     const trApp = document.createElement('tr');
                                     trApp.classList.add('status-green');
                                     let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
@@ -2126,6 +2168,42 @@
                         });
                     });
                 });
+
+                // Populate Footers
+                if(currentUser.role === 'admin') {
+                    // Admin History Footer (9 cols)
+                    tableFoot.innerHTML = `<tr>
+                        <td colspan="3" class="text-end">TOTAL</td>
+                        <td class="text-end">${historyTotals.iou.toFixed(2)}</td>
+                        <td class="text-end">${historyTotals.sales.toFixed(2)}</td>
+                        <td class="text-end">${historyTotals.userBill.toFixed(2)}</td>
+                        <td colspan="3"></td>
+                    </tr>`;
+                } else if(currentUser.role === 'superadmin') {
+                     // Super Admin History Footer (11 cols)
+                    tableFoot.innerHTML = `<tr>
+                        <td colspan="3" class="text-end">TOTAL</td>
+                        <td class="text-end">${historyTotals.iou.toFixed(2)}</td>
+                        <td class="text-end">${historyTotals.sales.toFixed(2)}</td>
+                        <td class="text-end">${historyTotals.userBill.toFixed(2)}</td>
+                        <td></td>
+                        <td class="text-end">${historyTotals.payable.toFixed(2)}</td>
+                        <td colspan="3"></td>
+                    </tr>`;
+                }
+
+                // Approved History Footer (Same for Admin & Super Admin - 11 cols)
+                if(currentUser.role === 'admin' || currentUser.role === 'superadmin') {
+                    approvedTableFoot.innerHTML = `<tr>
+                        <td colspan="3" class="text-end">TOTAL</td>
+                        <td class="text-end">${approvedTotals.iou.toFixed(2)}</td>
+                        <td class="text-end">${approvedTotals.sales.toFixed(2)}</td>
+                        <td class="text-end">${approvedTotals.userBill.toFixed(2)}</td>
+                        <td></td>
+                        <td class="text-end">${approvedTotals.payable.toFixed(2)}</td>
+                        <td colspan="3"></td>
+                    </tr>`;
+                }
 
             }, (error) => {
                 console.error("Firebase Read Failed: ", error);
