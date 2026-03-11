@@ -111,13 +111,54 @@
         .clickable-row:hover { background-color: #e0f7fa; }
 
         /* Mobile Optimization */
-        @media (max-width: 768px) {
-            .btn-sm { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
-            .form-control, .form-select { font-size: 0.85rem; }
-            h3 { font-size: 1.2rem; } h5 { font-size: 1rem; }
-            #expense_table_body input, #expense_table_body select { font-size: 11px; padding: 0.2rem 0.3rem; height: 26px; }
-            #expense_table_body .btn-sm { padding: 0.1rem 0.3rem; font-size: 10px; }
-        }
+        /* Mobile Optimization: Horizontal Scroll & Auto-Fit Columns */
+@media (max-width: 768px) {
+    
+    /* 1. Enable Horizontal Scroll */
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on Android/iOS */
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+    }
+
+    /* 2. Force Table Width to maintain structure */
+    #entryTab table {
+        min-width: 650px; /* Table minimum width so columns don't crush */
+        width: 100%;
+        font-size: 11px;
+        table-layout: fixed; /* Ensures columns distribute space evenly */
+    }
+
+    /* 3. Define Column Widths (Auto-Fit Logic) */
+    /* You can adjust these percentages to fit your needs */
+    #entryTab th:nth-child(1), #entryTab td:nth-child(1) { width: 14%; } /* Date */
+    #entryTab th:nth-child(2), #entryTab td:nth-child(2) { width: 18%; } /* From */
+    #entryTab th:nth-child(3), #entryTab td:nth-child(3) { width: 18%; } /* To */
+    #entryTab th:nth-child(4), #entryTab td:nth-child(4) { width: 18%; } /* Mode */
+    #entryTab th:nth-child(5), #entryTab td:nth-child(5) { width: 10%; } /* Amount */
+    #entryTab th:nth-child(6), #entryTab td:nth-child(6) { width: 10%; } /* DA */
+    #entryTab th:nth-child(7), #entryTab td:nth-child(7) { width: 10%; } /* Total */
+    #entryTab th:nth-child(8), #entryTab td:nth-child(8) { width: 2%;  } /* X Button */
+
+    /* 4. Shrink Inputs to fit Cells */
+    #entryTab input, 
+    #entryTab select {
+        width: 100% !important;
+        padding: 2px 4px !important;
+        font-size: 11px !important;
+        min-width: 35px; /* Minimum clickable area */
+        border: 1px solid #ced4da;
+    }
+
+    /* 5. Adjust Cell Padding */
+    #entryTab th, #entryTab td {
+        padding: 4px 2px !important;
+    }
+
+    /* 6. Optional: Hide Table Headers text if too crowded, keep only first letters or icons */
+    /* #entryTab th span { display: none; } */ 
+}
         
         /* Summary Table Style */
         .summary-table th { background-color: #e9ecef; font-size: 12px; text-align: center; }
