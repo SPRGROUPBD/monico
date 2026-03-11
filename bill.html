@@ -62,16 +62,42 @@
         .profile-img-thumb { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
         .profile-img-lg { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #0d6efd; }
 
-        /* Print Style */
+        /* Print Style - UPDATED TO FIX CONFLICT */
         .print-container { display: none; position: relative; }
+        .print-summary-container { display: none; position: relative; } 
         
         @media print {
+            /* Hide everything by default */
             body * { visibility: hidden; }
-            .print-container, .print-container * { visibility: visible; }
-            .print-container { position: absolute; left: 0; top: 0; width: 100%; display: block; padding: 10px; font-size: 11px; }
             .no-print { display: none !important; }
-            #pageFooter { position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 12px; }
-            #pageFooter:after { content: "PAGE : " counter(page); }
+            
+            /* Hide both print containers initially */
+            .print-container, .print-summary-container {
+                display: none !important;
+                visibility: hidden;
+            }
+
+            /* Logic: Only show the container with the 'active-print' class */
+            .active-print {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                visibility: visible !important;
+            }
+
+            /* Ensure children of active print are visible */
+            .active-print * {
+                visibility: visible !important;
+            }
+
+            /* Page Footer Styling */
+            #pageFooter, #pageFooterSummary {
+                position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 12px;
+            }
+            #pageFooter:after, #pageFooterSummary:after { content: "PAGE : " counter(page); }
+            
             thead { display: table-header-group; } tfoot { display: table-footer-group; }
             table, th, td { border: 1px solid #000 !important; border-collapse: collapse; }
             th, td { padding: 2px 4px; font-size: 11px; line-height: 1.2; }
@@ -148,6 +174,10 @@
             <!-- History Tab: Visible for User, Admin AND Super Admin -->
             <li class="nav-item" id="history_tab_li" role="presentation">
                 <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#billTab" type="button">History</button>
+            </li>
+            <!-- NEW: Bill Summary Tab (Admin Only) -->
+            <li class="nav-item admin-superadmin-only" role="presentation">
+                <button class="nav-link" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summaryTab" type="button">Bill Summary</button>
             </li>
             <!-- Approved History Tab: Visible for Admin and Super Admin -->
             <li class="nav-item admin-superadmin-only" role="presentation">
@@ -598,6 +628,67 @@
                 </div></div>
             </div>
 
+            <!-- NEW Tab: Bill Summary (ADMIN/SUPERADMIN) -->
+            <div class="tab-pane fade" id="summaryTab" role="tabpanel">
+                <div class="card dash-card no-print mb-2">
+                    <div class="card-header bg-primary text-white py-2">
+                        <h6 class="mb-0"><i class="bi bi-file-earmark-spreadsheet"></i> Travels Allowance Bill Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2 align-items-end mb-3">
+                            <div class="col-md-3">
+                                <label class="fw-bold text-muted">Select Month</label>
+                                <input type="month" id="summary_month" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold text-muted">Select DA</label>
+                                <select id="summary_da" class="form-select form-select-sm" onchange="generateSummary()">
+                                    <option value="">-- Select DA to Auto-Fill --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="fw-bold text-muted">Depot</label>
+                                <input type="text" id="summary_depot" class="form-control form-control-sm" readonly value="Kushtia">
+                            </div>
+                            <div class="col-md-2">
+                                <button onclick="printBillSummary()" class="btn btn-success btn-sm w-100"><i class="bi bi-printer"></i> Print Summary</button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive border">
+                            <table class="table table-bordered table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sl No</th>
+                                        <th>Date</th>
+                                        <th>Territory</th>
+                                        <th>Type</th>
+                                        <th class="text-end">Net Sales</th>
+                                        <th class="text-end">Taka</th>
+                                        <th class="text-end">DA</th>
+                                        <th class="text-end">Net Amount</th>
+                                        <th class="text-end">Cost (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="summary_table_body">
+                                    <tr><td colspan="9" class="text-center text-muted">Please select a DA and Month to view summary.</td></tr>
+                                </tbody>
+                                <tfoot class="table-secondary fw-bold" id="summary_table_foot">
+                                    <tr>
+                                        <td colspan="4" class="text-end">Grand Total:</td>
+                                        <td class="text-end" id="sum_foot_sales">0</td>
+                                        <td class="text-end" id="sum_foot_taka">0</td>
+                                        <td class="text-end" id="sum_foot_da">0</td>
+                                        <td class="text-end" id="sum_foot_net">0</td>
+                                        <td class="text-end" id="sum_foot_cost">0%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- NEW Tab: Approved History (Checked & Approved) -->
             <div class="tab-pane fade" id="approvedHistoryTab" role="tabpanel">
                 
@@ -807,7 +898,7 @@
         </div>
     </div>
 
-    <!-- PRINT CONTAINER -->
+    <!-- PRINT CONTAINER (INDIVIDUAL BILL) -->
     <div class="print-container" id="print_area">
         <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 10px;">
             <h2 style="margin:0; letter-spacing: 2px;">MONICO PHARMA LTD</h2>
@@ -895,6 +986,62 @@
         <div id="pageFooter"></div>
     </div>
 
+    <!-- PRINT SUMMARY CONTAINER (BILL SUMMARY) -->
+    <div class="print-summary-container" id="print_summary_area">
+        <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 10px;">
+            <h2 style="margin:0; letter-spacing: 2px;">MONICO PHARMA LTD</h2>
+            <h4 style="margin:0; text-decoration:">Travels Allowance Bill Summary (Delivery Assistant)</h4>
+            <h5 style="margin:0; text-decoration: " id="print_sum_depot">Kushtia Depot</h5>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold;">
+            <div>DA Name: <span id="print_sum_da_name"></span></div>
+            <div>Designation: Delivery Assistant</div>
+            <div>Month: <span id="print_sum_month"></span></div>
+        </div>
+        
+        <!-- SUMMARY PRINT TABLE -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px;">
+            <thead><tr style="background-color: #f0f0f0;">
+                <th style="padding: 2px; text-align: center;">Sl No</th>
+                <th style="padding: 2px; text-align: left;">Date</th>
+                <th style="padding: 2px; text-align: left;">Territory</th>
+                <th style="padding: 2px; text-align: left;">Type</th>
+                <th style="padding: 2px; text-align: right;">Net Sales</th>
+                <th style="padding: 2px; text-align: right;">Taka</th>
+                <th style="padding: 2px; text-align: right;">DA</th>
+                <th style="padding: 2px; text-align: right;">Net Amount</th>
+                <th style="padding: 2px; text-align: right;">Cost (%)</th>
+            </tr></thead>
+            <tbody id="print_sum_tbody"></tbody>
+            <tfoot>
+                <tr style="font-weight: bold; background-color: #e9ecef;">
+                    <td colspan="4" style="text-align:right; padding: 2px;">Grand Total</td>
+                    <td style="text-align:right; padding: 2px;" id="print_sum_foot_sales">0</td>
+                    <td style="text-align:right; padding: 2px;" id="print_sum_foot_taka">0</td>
+                    <td style="text-align:right; padding: 2px;" id="print_sum_foot_da">0</td>
+                    <td style="text-align:right; padding: 2px;" id="print_sum_foot_net">0</td>
+                    <td style="text-align:right; padding: 2px;" id="print_sum_foot_cost">0%</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-weight: bold; border: 1px solid #000; padding: 5px;">
+            <div style="width: 70%;">In Words: <span id="print_sum_words"></span></div>
+            <div style="width: 28%;">Delivery Cost (%): <span id="print_sum_cost_pct"></span></div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 40px;">
+            <tr style="height: 60px; vertical-align: bottom;">
+                <td style="width: 25%; text-align: center; border-top: 1px solid #000;">Prepared by DIC</td>
+                <td style="width: 25%; text-align: center; border-top: 1px solid #000;">Delivery Assistant</td>
+                <td style="width: 25%; text-align: center; border-top: 1px solid #000;">RSM</td>
+                <td style="width: 25%; text-align: center; border-top: 1px solid #000;">Approved by</td>
+            </tr>
+        </table>
+        <div id="pageFooterSummary" style="position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 12px;"></div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -926,6 +1073,7 @@
         let iouListGlobal = {}; 
         let userPhotoBase64 = null; 
         let profilePhotoBase64 = null;
+        let currentSummaryData = []; // To store summary for printing
         
         // Modal state variables
         let modalSales = 0;
@@ -1307,6 +1455,9 @@
                 loadAdminDashboardData(); 
                 loadIOUListGlobal(); 
                 loadAdminIOU(); 
+                
+                // Load DA list for Summary Tab
+                loadDAListForSummary();
             }
 
             prepareBillEntryForm();
@@ -1848,6 +1999,32 @@
                 }
             });
         }
+        
+        // NEW: Load DA List for Summary Tab
+        function loadDAListForSummary() {
+            const selectSummary = document.getElementById('summary_da');
+            if(!selectSummary) return;
+            
+            selectSummary.innerHTML = '<option value="">-- Select DA to Auto-Fill --</option>';
+            
+            // Reuse cache if available, else fetch
+            if(Object.keys(daListCache).length > 0) {
+                Object.keys(daListCache).forEach(key => {
+                    selectSummary.innerHTML += `<option value="${key}">${daListCache[key]}</option>`;
+                });
+            } else {
+                database.ref('Users').once('value', snap => {
+                    if(snap.exists()){
+                        snap.forEach(child => {
+                            const u = child.val();
+                            if(u.role !== 'admin' && u.role !== 'superadmin') {
+                                selectSummary.innerHTML += `<option value="${child.key}">${u.name}</option>`;
+                            }
+                        });
+                    }
+                });
+            }
+        }
 
         function saveIOU() {
             const daId = document.getElementById('iou_da_name').value;
@@ -2041,6 +2218,9 @@
                     return; 
                 }
 
+                // Collect all bills first to allow sorting for Approved History
+                let approvedBillsArray = [];
+
                 snapshot.forEach((depotSnapshot) => {
                     depotSnapshot.forEach((daSnapshot) => {
                         daSnapshot.forEach((billSnapshot) => {
@@ -2130,36 +2310,10 @@
                                 
                                 // Approved History Tab (Orange & Green)
                                 if(bill.status === 'orange' || bill.status === 'green') {
-                                     // Apply Approved Filters
-                                     if (approvedDA && bill.daId !== approvedDA) return;
-                                     if (approvedMonth && !isDateInMonth(bill.submitDate || bill.depDate, approvedMonth)) return;
-
-                                     // Accumulate Totals
-                                     approvedTotals.iou += iou;
-                                     approvedTotals.sales += sales;
-                                     approvedTotals.userBill += originalAmount;
-                                     approvedTotals.payable += approvedAmount;
-
-                                    const trApp = document.createElement('tr');
-                                    if(bill.status === 'orange') { trApp.classList.add('status-orange'); statusText = "CHECKED"; }
-                                    else { trApp.classList.add('status-green'); statusText = "APPROVED"; }
-
-                                    let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
-                                    let actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>`;
-                                    
-                                    trApp.innerHTML = `
-                                        <td>${formatDate(bill.submitDate || bill.depDate)}</td>
-                                        <td>${bill.daName}</td>
-                                        <td>${bill.route || 'N/A'}</td>
-                                        <td class="text-end">${iou.toFixed(2)}</td>
-                                        <td class="text-end">${sales.toFixed(2)}</td>
-                                        <td class="text-end">${originalAmount.toFixed(2)}</td>
-                                        <td class="text-end">${userBillPer}%</td>
-                                        <td class="text-end fw-bold">${payDisplay}</td>
-                                        <td class="text-end">${payPer}%</td>
-                                        <td><b>${statusText}</b></td>
-                                        <td>${actionBtns}</td>`;
-                                    approvedTableBody.appendChild(trApp);
+                                    // Add to array for sorting
+                                    approvedBillsArray.push({
+                                        bill, billId, daId, iou, sales, originalAmount, approvedAmount, userBillPer, payPer, deduction
+                                    });
                                 }
 
                             } 
@@ -2204,38 +2358,57 @@
                                 
                                 // Approved History Tab (Green)
                                 if(bill.status === 'green') {
-                                    // Apply Approved Filters
-                                    if (approvedDA && bill.daId !== approvedDA) return;
-                                    if (approvedMonth && !isDateInMonth(bill.submitDate || bill.depDate, approvedMonth)) return;
-
-                                    // Accumulate Totals
-                                    approvedTotals.iou += iou;
-                                    approvedTotals.sales += sales;
-                                    approvedTotals.userBill += originalAmount;
-                                    approvedTotals.payable += approvedAmount;
-
-                                    const trApp = document.createElement('tr');
-                                    trApp.classList.add('status-green');
-                                    let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
-                                    let actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>`;
-                                    
-                                    trApp.innerHTML = `
-                                        <td>${formatDate(bill.submitDate || bill.depDate)}</td>
-                                        <td>${bill.daName}</td>
-                                        <td>${bill.route || 'N/A'}</td>
-                                        <td class="text-end">${iou.toFixed(2)}</td>
-                                        <td class="text-end">${sales.toFixed(2)}</td>
-                                        <td class="text-end">${originalAmount.toFixed(2)}</td>
-                                        <td class="text-end">${userBillPer}%</td>
-                                        <td class="text-end fw-bold">${payDisplay}</td>
-                                        <td class="text-end">${payPer}%</td>
-                                        <td><b>APPROVED</b></td>
-                                        <td>${actionBtns}</td>`;
-                                    approvedTableBody.appendChild(trApp);
+                                    approvedBillsArray.push({
+                                        bill, billId, daId, iou, sales, originalAmount, approvedAmount, userBillPer, payPer, deduction
+                                    });
                                 }
                             }
                         });
                     });
+                });
+
+                // SORTING APPROVED BILLS: Date A to Z (Oldest to Newest)
+                approvedBillsArray.sort((a, b) => {
+                    const dateA = new Date(a.bill.submitDate || a.bill.depDate || 0);
+                    const dateB = new Date(b.bill.submitDate || b.bill.depDate || 0);
+                    return dateA - dateB;
+                });
+
+                // RENDER APPROVED BILLS
+                approvedBillsArray.forEach(item => {
+                    const { bill, billId, daId, iou, sales, originalAmount, approvedAmount, userBillPer, payPer, deduction } = item;
+                    
+                    // Apply Approved Filters
+                    if (approvedDA && bill.daId !== approvedDA) return;
+                    if (approvedMonth && !isDateInMonth(bill.submitDate || bill.depDate, approvedMonth)) return;
+
+                    // Accumulate Totals
+                    approvedTotals.iou += iou;
+                    approvedTotals.sales += sales;
+                    approvedTotals.userBill += originalAmount;
+                    approvedTotals.payable += approvedAmount;
+
+                    const trApp = document.createElement('tr');
+                    let statusText = bill.status === 'orange' ? "CHECKED" : "APPROVED";
+                    if(bill.status === 'orange') trApp.classList.add('status-orange');
+                    else trApp.classList.add('status-green');
+
+                    let payDisplay = deduction > 0 ? `<span class="cut-amount">${originalAmount.toFixed(2)}</span> <span class="payable-amount">${approvedAmount.toFixed(2)}</span>` : approvedAmount.toFixed(2);
+                    let actionBtns = `<button class="btn btn-info btn-sm text-white" onclick="printBill('${billId}', '${bill.depot}', '${daId}')">Print</button>`;
+                    
+                    trApp.innerHTML = `
+                        <td>${formatDate(bill.submitDate || bill.depDate)}</td>
+                        <td>${bill.daName}</td>
+                        <td>${bill.route || 'N/A'}</td>
+                        <td class="text-end">${iou.toFixed(2)}</td>
+                        <td class="text-end">${sales.toFixed(2)}</td>
+                        <td class="text-end">${originalAmount.toFixed(2)}</td>
+                        <td class="text-end">${userBillPer}%</td>
+                        <td class="text-end fw-bold">${payDisplay}</td>
+                        <td class="text-end">${payPer}%</td>
+                        <td><b>${statusText}</b></td>
+                        <td>${actionBtns}</td>`;
+                    approvedTableBody.appendChild(trApp);
                 });
 
                 // Populate Footers
@@ -2277,6 +2450,189 @@
             }, (error) => {
                 console.error("Firebase Read Failed: ", error);
             });
+        }
+
+        // ================= BILL SUMMARY LOGIC =================
+        function generateSummary() {
+            const daId = document.getElementById('summary_da').value;
+            const monthVal = document.getElementById('summary_month').value;
+            const tbody = document.getElementById('summary_table_body');
+            const depot = document.getElementById('summary_depot').value;
+            
+            tbody.innerHTML = '';
+            currentSummaryData = []; // Reset stored data
+
+            if(!daId) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Please select a DA.</td></tr>';
+                return;
+            }
+
+            // Get DA Name from dropdown
+            const daName = document.getElementById('summary_da').selectedOptions[0].text;
+            
+            // Totals for footer
+            let tSales = 0, tTaka = 0, tDA = 0, tNet = 0;
+
+            // Fetch bills for this DA
+            database.ref('Bills/' + depot + '/' + daId).once('value', snap => {
+                if(!snap.exists()) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center">No approved bills found for this DA.</td></tr>';
+                    return;
+                }
+
+                let billsArray = [];
+                snap.forEach(child => {
+                    const bill = child.val();
+                    if(bill.status === 'green') billsArray.push(bill);
+                });
+
+                if(billsArray.length === 0) {
+                     tbody.innerHTML = '<tr><td colspan="9" class="text-center text-warning">No Approved (Green) bills found.</td></tr>';
+                     return;
+                }
+
+                // Sort bills by date
+                billsArray.sort((a,b) => (a.submitDate || a.depDate || '').localeCompare(b.submitDate || b.depDate || ''));
+
+                let sl = 1;
+                billsArray.forEach(bill => {
+                    // Check month filter if provided
+                    if(monthVal && !isDateInMonth(bill.submitDate || bill.depDate, monthVal)) return;
+
+                    // Calculate Summary Specifics
+                    const netSales = bill.soldVal || (bill.invoiceVal - bill.returnVal);
+                    
+                    // Separate Taka (Travel) vs DA (Daily Allowance)
+                    let sumTaka = 0;
+                    let sumDA = 0;
+                    
+                    if(bill.expenses && Array.isArray(bill.expenses)) {
+                        bill.expenses.forEach(exp => {
+                            const amt = parseFloat(exp.amount) || 0;
+                            if(exp.mode && exp.mode.trim() === 'Daily Allowance') {
+                                sumDA += amt;
+                            } else {
+                                sumTaka += amt;
+                            }
+                        });
+                    }
+
+                    // Fallback if expenses structure differs or flat
+                    // If we can't determine, split logically or use totalAmount as Net
+                    // Assuming expenses exist.
+                    
+                    const netAmount = bill.totalAmount || (sumTaka + sumDA);
+                    const costPct = netSales > 0 ? ((netAmount / netSales) * 100).toFixed(2) : "0.00";
+
+                    // Add to totals
+                    tSales += netSales;
+                    tTaka += sumTaka;
+                    tDA += sumDA;
+                    tNet += netAmount;
+
+                    // Store for printing
+                    currentSummaryData.push({
+                        sl: sl++,
+                        date: formatDate(bill.submitDate || bill.depDate),
+                        territory: bill.route || 'N/A',
+                        type: 'Delivery',
+                        sales: netSales,
+                        taka: sumTaka,
+                        da: sumDA,
+                        net: netAmount,
+                        cost: costPct
+                    });
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${sl-1}</td>
+                        <td>${formatDate(bill.submitDate || bill.depDate)}</td>
+                        <td>${bill.route || ''}</td>
+                        <td>Delivery</td>
+                        <td class="text-end">${netSales.toFixed(2)}</td>
+                        <td class="text-end">${sumTaka.toFixed(2)}</td>
+                        <td class="text-end">${sumDA.toFixed(2)}</td>
+                        <td class="text-end fw-bold">${netAmount.toFixed(2)}</td>
+                        <td class="text-end">${costPct}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Update Footer
+                document.getElementById('sum_foot_sales').innerText = tSales.toFixed(2);
+                document.getElementById('sum_foot_taka').innerText = tTaka.toFixed(2);
+                document.getElementById('sum_foot_da').innerText = tDA.toFixed(2);
+                document.getElementById('sum_foot_net').innerText = tNet.toFixed(2);
+                
+                const totalCostPct = tSales > 0 ? ((tNet / tSales) * 100).toFixed(2) : "0.00";
+                document.getElementById('sum_foot_cost').innerText = totalCostPct + "%";
+
+                if(currentSummaryData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center">No bills found for selected month.</td></tr>';
+                }
+            });
+        }
+
+        function printBillSummary() {
+            if(currentSummaryData.length === 0) {
+                alert("No data to print. Generate summary first.");
+                return;
+            }
+
+            // Populate Print Header
+            const daId = document.getElementById('summary_da').value;
+            const daName = document.getElementById('summary_da').selectedOptions[0].text;
+            const monthVal = document.getElementById('summary_month').value;
+            
+            document.getElementById('print_sum_da_name').innerText = daName;
+            document.getElementById('print_sum_depot').innerText = "Kushtia Depot"; // Or fetch dynamically
+            document.getElementById('print_sum_month').innerText = monthVal ? monthVal : "All Time";
+
+            // Populate Print Table
+            const tbody = document.getElementById('print_sum_tbody');
+            tbody.innerHTML = '';
+            
+            let tSales = 0, tTaka = 0, tDA = 0, tNet = 0;
+
+            currentSummaryData.forEach(row => {
+                tSales += row.sales;
+                tTaka += row.taka;
+                tDA += row.da;
+                tNet += row.net;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding:2px; text-align:center;">${row.sl}</td>
+                    <td style="padding:2px; text-align:left;">${row.date}</td>
+                    <td style="padding:2px; text-align:left;">${row.territory}</td>
+                    <td style="padding:2px; text-align:left;">${row.type}</td>
+                    <td style="padding:2px; text-align:right;">${row.sales.toFixed(2)}</td>
+                    <td style="padding:2px; text-align:right;">${row.taka.toFixed(2)}</td>
+                    <td style="padding:2px; text-align:right;">${row.da.toFixed(2)}</td>
+                    <td style="padding:2px; text-align:right;">${row.net.toFixed(2)}</td>
+                    <td style="padding:2px; text-align:right;">${row.cost}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Footer
+            document.getElementById('print_sum_foot_sales').innerText = tSales.toFixed(2);
+            document.getElementById('print_sum_foot_taka').innerText = tTaka.toFixed(2);
+            document.getElementById('print_sum_foot_da').innerText = tDA.toFixed(2);
+            document.getElementById('print_sum_foot_net').innerText = tNet.toFixed(2);
+            
+            const totalCostPct = tSales > 0 ? ((tNet / tSales) * 100).toFixed(2) : "0.00";
+            document.getElementById('print_sum_foot_cost').innerText = totalCostPct + "%";
+            document.getElementById('print_sum_cost_pct').innerText = totalCostPct + "%";
+
+            document.getElementById('print_sum_words').innerText = numberToEnglish(tNet) + " Taka Only";
+
+            // --- TOGGLE ACTIVE PRINT CLASS ---
+            // Activate Summary Container, Deactivate Individual Bill Container
+            document.getElementById('print_summary_area').classList.add('active-print');
+            document.getElementById('print_area').classList.remove('active-print');
+
+            window.print();
         }
 
         // ================= ADMIN DEDUCTION & APPROVAL LOGIC =================
@@ -2476,7 +2832,12 @@
                 document.getElementById('p_foot_total').innerText = totTotal; 
                 document.getElementById('p_foot_ded').innerText = totDed;
                 document.getElementById('p_total_amount').innerText = totNet;
-                
+
+                // --- TOGGLE ACTIVE PRINT CLASS ---
+                // Activate Individual Bill Container, Deactivate Summary Container
+                document.getElementById('print_area').classList.add('active-print');
+                document.getElementById('print_summary_area').classList.remove('active-print');
+
                 window.print();
             });
         }
@@ -2543,6 +2904,7 @@ function numberToEnglish(num) {
                     
                     // Refresh DA List in IOU section
                     loadDAListForIOU(); 
+                    loadDAListForSummary();
                 }
             });
         }
