@@ -474,9 +474,7 @@
         <button onclick="window.nav('generator')"><i class="fa-solid fa-box-open"></i> Product</button>
         <button onclick="window.nav('giftGenerator')" style="color:var(--purple)"><i class="fa-solid fa-gift"></i> Gift</button>
         <button onclick="window.nav('manualGenerator')" style="color:var(--warning)"><i class="fa-solid fa-pen-to-square"></i> Manual</button>
-        <!-- NEW HAND OVER BUTTON -->
         <button onclick="window.nav('handOver')" style="color:var(--teal)"><i class="fa-solid fa-hand-holding-hand"></i> Hand Over</button>
-        
         <button onclick="window.nav('challans')"><i class="fa-solid fa-file-invoice"></i> Challans</button>
         <button onclick="window.nav('management')" id="nav-mgmt"><i class="fa-solid fa-cogs"></i> Management</button>
         <button onclick="window.nav('reports')"><i class="fa-solid fa-warehouse"></i> Stock</button>
@@ -523,7 +521,6 @@
         <button class="mobile-link-btn" onclick="window.nav('manualGenerator'); window.toggleMobileMenu()">
             <i class="fa-solid fa-pen-to-square" style="color:var(--warning)"></i> Manual
         </button>
-        <!-- NEW HAND OVER MOBILE LINK -->
         <button class="mobile-link-btn" onclick="window.nav('handOver'); window.toggleMobileMenu()">
             <i class="fa-solid fa-hand-holding-hand" style="color:var(--teal)"></i> Hand Over
         </button>
@@ -829,10 +826,6 @@
                         </select>
                     </div>
                     <div style="display:flex; align-items:center; gap:5px;">
-                        <label style="margin:0; font-size:0.85rem; color:#7f8c8d;">Date:</label>
-                        <input type="date" id="filter-date" style="width: 140px; padding: 5px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 4px;" onchange="window.renderChallans()">
-                    </div>
-                    <div style="display:flex; align-items:center; gap:5px;">
                         <label style="margin:0; font-size:0.85rem; color:#7f8c8d;">Depot:</label>
                         <select id="filter-depot" style="width: 120px; font-size: 0.9rem;" onchange="window.renderChallans()">
                             <option value="">All Depots</option>
@@ -913,7 +906,6 @@
             <div class="table-responsive"><table id="table-mpo"></table></div>
         </div>
         
-        <!-- MODIFIED PRODUCT MANAGEMENT -->
         <div id="mgmt-prod" class="panel" style="display:none">
             <div class="panel-header">
                 <h3>Product List</h3>
@@ -926,7 +918,6 @@
             <div class="table-responsive"><table id="table-prod"></table></div>
         </div>
 
-        <!-- MODIFIED GIFT MANAGEMENT -->
         <div id="mgmt-gift" class="panel" style="display:none">
             <div class="panel-header">
                 <h3>Gift List</h3>
@@ -1130,24 +1121,19 @@
 <!-- HAND OVER CHALLAN PRINT AREA -->
 <div id="print-handover-area">
     <div class="ho-container">
-        <!-- Center Header -->
         <div class="ho-title">HAND OVER CHALLAN</div>
         <div class="ho-sep"></div>
         
-        
-        <!-- Row 1 -->
         <div class="ho-header-row">
             <div>Challan No: <span id="ho-p-no"></span></div>
             <div>Date: <span id="ho-p-date"></span></div>
         </div>
         
-        <!-- Row 2 -->
         <div class="ho-header-row">
             <div>From: <span id="ho-p-from"></span></div>
             <div>To: <span id="ho-p-to"></span></div>
         </div>
        <div class="ho-sep"></div>
-        <!-- Items Table -->
         <table class="ho-items-table">
             <thead>
                 <tr>
@@ -1162,14 +1148,10 @@
             <tbody id="ho-p-items"></tbody>
         </table>
        
-        
-        <!-- Total Row -->
         <div class="ho-total-row">
             Total Qty: <span id="ho-p-total"></span>
         </div>
 
-
-        <!-- Signatures -->
         <div class="ho-signatures">
             <div>Handed Over By: __________</div>
             <div>Received By: __________</div>
@@ -1219,14 +1201,14 @@
     // --- FIREBASE CONFIGURATION ---
     const firebaseConfig = {
         apiKey: "AIzaSyD3DBNkMcvm9RF1QNd6g37mn-todxR4THQ",
-  authDomain: "mplfpdc.firebaseapp.com",
-  databaseURL: "https://mplfpdc-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mplfpdc",
-  storageBucket: "mplfpdc.firebasestorage.app",
-  messagingSenderId: "1004917483554",
-  appId: "1:1004917483554:web:91ee71365c64869e07027b",
-  measurementId: "G-S3JLB16V13"
-};
+        authDomain: "mplfpdc.firebaseapp.com",
+        databaseURL: "https://mplfpdc-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "mplfpdc",
+        storageBucket: "mplfpdc.firebasestorage.app",
+        messagingSenderId: "1004917483554",
+        appId: "1:1004917483554:web:91ee71365c64869e07027b",
+        measurementId: "G-S3JLB16V13"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -1255,7 +1237,7 @@
     let editType = null; 
     let editId = null;
 
-    // --- AUTHENTICATION & LOGIN (FIXED) ---
+    // --- AUTHENTICATION & LOGIN ---
     function handleLogin(e) {
         e.preventDefault();
         const u = e.target.username.value.trim();
@@ -1268,14 +1250,12 @@
             return;
         }
 
-        // Admin Login - Case Insensitive Username Check
         if (u.toUpperCase() === 'KS' && p === 'Monico@Ku007') {
             currentUser = { username: 'KS', role: 'admin', depotId: null };
             completeLogin();
             return;
         }
 
-        // User Login
         document.getElementById('loader').style.display = 'block';
 
         get(ref(db, 'users')).then((snapshot) => {
@@ -1289,7 +1269,6 @@
             const users = snapshot.val();
             const userList = Object.values(users);
             
-            // CASE INSENSITIVE USERNAME CHECK
             const foundUser = userList.find(user => 
                 user.username.toLowerCase() === u.toLowerCase() && user.password === p
             );
@@ -1343,7 +1322,6 @@
     window.changeDepotFilter = function() {
         currentDepotFilter = document.getElementById('global-depot-filter').value;
         
-        // Detach old listeners
         productListeners.forEach(unsub => unsub());
         productListeners = [];
         giftListeners.forEach(unsub => unsub());
@@ -1353,7 +1331,6 @@
         handoverListeners.forEach(unsub => unsub());
         handoverListeners = [];
 
-        // Re-init with new filter
         initProductListeners();
         initGiftListeners(); 
         initChallanListeners();
@@ -1714,7 +1691,6 @@
         window.renderCategoryView(activeMpos);
         window.renderStockReport(fProds, fGifts, fChallans);
 
-        // Populate Hand Over Dropdowns
         const hoDepotInput = document.getElementById('ho-from-depot');
         if(currentUser.role === 'admin') hoDepotInput.value = currentDepotFilter === 'ALL' ? 'All Depots' : currentDepotFilter;
         else hoDepotInput.value = currentUser.depotId;
@@ -1723,12 +1699,10 @@
         const currentHoArea = hoAreaSelect.value;
         hoAreaSelect.innerHTML = '<option value="">-- Select Destination --</option>';
         
-        // Add Areas
         const uniqueAreas = new Set(activeMpos.map(m => m.area).filter(a => a));
         Array.from(uniqueAreas).sort().forEach(area => {
             hoAreaSelect.innerHTML += `<option value="${area}">${area}</option>`;
         });
-        // Add Depots as Destinations
         hoAreaSelect.innerHTML += '<option disabled>──────────</option>';
         Array.from(allDepots).sort().forEach(depot => {
              hoAreaSelect.innerHTML += `<option value="${depot}">${depot} (Depot)</option>`;
@@ -1753,18 +1727,8 @@
         const manualMpoId = document.getElementById('manual-mpo').value;
         if(manualMpoId) window.loadManualMPODetails();
         
-        // Refresh Hand Over items if data changed
         if(document.getElementById('handOver').classList.contains('active')) {
             window.loadHandOverItems();
-        }
-
-        // Set Default Date for Filter to Today if empty
-        const dateFilter = document.getElementById('filter-date');
-        if (!dateFilter.value) {
-            const today = new Date().toISOString().split('T')[0];
-            dateFilter.value = today;
-            // Trigger render to apply the date filter
-            window.renderChallans(fChallans, fMpos);
         }
     }
 
@@ -1959,7 +1923,6 @@
         filterSel.value = currentFilter;
     };
 
-    // --- Helper: Calculate Stock ---
     function getItemClosingStock(item) {
         const currentMonth = new Date().toISOString().slice(0, 7);
         let used = 0;
@@ -1967,7 +1930,6 @@
         const itemChallans = data.challans; 
         const itemHandovers = data.handovers;
 
-        // Calculate Used in Regular Challans
         itemChallans.forEach(c => {
             const cDate = new Date(c.timestamp).toISOString().slice(0, 7);
             if(cDate === currentMonth && c.items) {
@@ -1977,7 +1939,6 @@
             }
         });
 
-        // Calculate Used in Hand Overs
         itemHandovers.forEach(c => {
             const cDate = new Date(c.timestamp).toISOString().slice(0, 7);
             if(cDate === currentMonth && c.items) {
@@ -1999,7 +1960,6 @@
         handOverSelections = {}; 
         updateCount('handover');
 
-        // Combine and Sort Prods and Gifts
         const allItems = [...data.prods, ...data.gifts].filter(p => p.isActive !== false);
 
         allItems.forEach(p => {
@@ -2081,7 +2041,6 @@
 
         push(ref(db, `depots/${assignedDepotId}/handovers`), newChallan).then(() => {
             showToast("Hand Over Challan Generated!");
-            
             window.printHandOverChallan(newChallan);
             handOverSelections = {};
             window.loadHandOverItems();
@@ -2104,7 +2063,7 @@
         let totalUnit = "pcs";
         c.items.forEach((item, index) => {
             total += parseInt(item.issueQty || 0);
-                        if(item.unit) totalUnit = item.unit;
+            if(item.unit) totalUnit = item.unit;
             tbody.innerHTML += `
                 <tr>
                     <td style="text-align:center">${index+1}</td>
@@ -2118,13 +2077,9 @@
         });
 
         document.getElementById('ho-p-total').innerText = `${total} ${totalUnit}`;
-
         window.print();
     };
-    // --- END HAND OVER ---
 
-    // --- Continue with remaining logic (Standard Challans, Management, etc) ---
-    
     window.loadMPODetails = function() {
         const id = document.getElementById('gen-mpo').value;
         const fMpos = getFilteredData(data.mpos).filter(m => m.isActive !== false);
@@ -2435,7 +2390,6 @@
         const serialStr = newSerial.toString().padStart(3, '0');
         const challanNo = `${basePrefix}${serialStr}`;
         
-        // FIX: Check if type is gift to assign correct category
         let cat = '';
         if(type === 'gift') {
             cat = currentMPO.categoryGift || 'A';
@@ -2461,7 +2415,6 @@
             depotId: assignedDepotId
         };
 
-        // SAVE DEPOT WISE
         push(ref(db, `depots/${assignedDepotId}/challans`), newChallan).then(() => {
             showToast("Manual Challan Generated & Saved!");
             manualSelections = {};
@@ -2470,7 +2423,7 @@
         }).catch(err => showToast("Error: " + err.message));
     };
 
-        window.generateChallan = function(type) {
+    window.generateChallan = function(type) {
         let itemsArray = [];
         let fProds = data.prods; 
         let fGifts = data.gifts; 
@@ -2488,15 +2441,13 @@
         const year = dateObj.getFullYear();
         const month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
         
-        // --- DEPOT WISE SAVE LOGIC ---
         let assignedDepotId = currentUser.depotId; 
         
         if (currentUser.role === 'admin') {
             assignedDepotId = currentMPO.depotId || currentDepotFilter;
-            if(assignedDepotId === 'ALL') assignedDepotId = 'HQ'; // Fallback if Admin is viewing ALL
+            if(assignedDepotId === 'ALL') assignedDepotId = 'HQ';
         }
 
-        // Generate Serial based on Depot Code
         let depotCode = "KS"; 
         if(assignedDepotId && assignedDepotId !== 'ALL') depotCode = assignedDepotId.substring(0, 2).toUpperCase();
 
@@ -2504,7 +2455,6 @@
         const basePrefix = `${depotCode}${dateCode}`;
         
         let maxSerial = 0;
-        // Check against data.challans (which is now loaded depot-wise)
         if(data.challans) {
             data.challans.forEach(c => { 
                 if(c.id && c.id.startsWith(basePrefix)) {
@@ -2518,12 +2468,10 @@
         const serialStr = newSerial.toString().padStart(3, '0');
         const challanNo = `${basePrefix}${serialStr}`;
         
-        // Determine Category
         let cat = '';
         if(type === 'prod') cat = currentMPO.categoryProd || currentMPO.category || 'A';
         else cat = currentMPO.categoryGift || 'A';
 
-        // Map Items with Quantities
         const items = itemsArray.map(item => {
             let qty = 0;
             if(cat === 'A') qty = item.qtyA || 0;
@@ -2552,7 +2500,6 @@
             depotId: assignedDepotId
         };
 
-        // --- SAVE TO FIREBASE (DEPOT WISE) ---
         push(ref(db, `depots/${assignedDepotId}/challans`), newChallan).then(() => {
             showToast("Challan Generated & Saved!");
             if(type === 'gift') { selectedGifts.clear(); updateCount('gift'); } 
@@ -2585,7 +2532,6 @@
     };
 
     window.clearChallanFilters = function() {
-        document.getElementById('filter-date').value = "";
         document.getElementById('filter-depot').value = "";
         document.getElementById('filter-type').value = ""; 
         document.getElementById('filter-category').value = "";
@@ -2663,16 +2609,13 @@
         document.getElementById('p-date').innerText = c.date;
         document.getElementById('p-tp-sales').innerText = c.mpoSales ? Number(c.mpoSales).toLocaleString() : '0';
         
-        // FIX: Category Print Logic with Fallback
         let categoryToDisplay = c.mpoCat;
-        // If category is missing in challan record (old records), try to fetch latest from MPO list
         if (!categoryToDisplay) {
             const mpoRecord = data.mpos.find(m => m.id === c.mpoId);
             if (mpoRecord) {
-                // If Gift challan, use Gift Category, else Prod Category
                 categoryToDisplay = (type === 'Gift') ? (mpoRecord.categoryGift || mpoRecord.categoryProd || mpoRecord.category) : (mpoRecord.categoryProd || mpoRecord.category);
             } else {
-                categoryToDisplay = '-'; // Final fallback
+                categoryToDisplay = '-';
             }
         }
         document.getElementById('p-cat').innerText = categoryToDisplay;
@@ -2690,22 +2633,18 @@
     };
 
     window.renderChallans = function(fChallans, fMpos) {
-        if (!fChallans) fChallans = data.challans; // Use loaded data
+        if (!fChallans) fChallans = data.challans;
         if (!fMpos) fMpos = getFilteredData(data.mpos);
 
-        // Populate Depot Filter Dropdown
         const depotSel = document.getElementById('filter-depot');
         const currentDepotVal = depotSel.value;
         depotSel.innerHTML = '<option value="">All Depots</option>';
         
-        // Collect unique depots from the current view
         let depotsInView = new Set();
         if (currentUser.role === 'admin' && currentDepotFilter === 'ALL') {
-             // If admin is viewing ALL, show all depots from data
              fMpos.forEach(m => { if(m.depotId) depotsInView.add(m.depotId); });
              fChallans.forEach(c => { if(c.depotId) depotsInView.add(c.depotId); });
         } else {
-             // Otherwise just show the current filter
              if(currentDepotFilter && currentDepotFilter !== 'ALL') depotsInView.add(currentDepotFilter);
              else if (currentUser.depotId) depotsInView.add(currentUser.depotId);
         }
@@ -2713,7 +2652,6 @@
         Array.from(depotsInView).sort().forEach(depot => depotSel.innerHTML += `<option value="${depot}">${depot}</option>`);
         depotSel.value = currentDepotVal;
 
-        // Populate MPO Filter Dropdown
         const mpoSel = document.getElementById('filter-mpo');
         const currentMpoVal = mpoSel.value;
         mpoSel.innerHTML = '<option value="">All MPOs</option>';
@@ -2722,22 +2660,13 @@
         }
         mpoSel.value = currentMpoVal;
 
-        // --- SET CURRENT DATE DEFAULT ---
-        const dateFilterInput = document.getElementById('filter-date');
-        if (!dateFilterInput.value) {
-            const today = new Date().toISOString().split('T')[0];
-            dateFilterInput.value = today;
-        }
-
         const mpoFilter = document.getElementById('filter-mpo').value;
         const depotFilter = document.getElementById('filter-depot').value;
         const challanFilter = document.getElementById('filter-challan-no').value.trim().toLowerCase();
         const categoryFilter = document.getElementById('filter-category').value;
         const viewMode = document.getElementById('view-mode').value;
-        const dateFilter = document.getElementById('filter-date').value;
         const typeFilter = document.getElementById('filter-type').value;
 
-        // Combine regular challans and handovers for display
         let allRecords = [...fChallans, ...data.handovers];
 
         const list = allRecords.filter(c => {
@@ -2745,13 +2674,6 @@
             const matchesDepot = !depotFilter || c.depotId === depotFilter;
             const matchesChallan = !challanFilter || c.id.toLowerCase().includes(challanFilter);
             const matchesCategory = !categoryFilter || c.mpoCat === categoryFilter;
-            
-            let matchesDate = true;
-            if(dateFilter) {
-                const cDate = new Date(c.timestamp);
-                const cDateStr = cDate.toISOString().split('T')[0];
-                if (cDateStr !== dateFilter) matchesDate = false;
-            }
 
             let matchesType = true;
             if (typeFilter) {
@@ -2760,7 +2682,7 @@
                 else matchesType = !c.isManual && c.type === typeFilter;
             }
 
-            return matchesMPO && matchesDepot && matchesChallan && matchesCategory && matchesDate && matchesType;
+            return matchesMPO && matchesDepot && matchesChallan && matchesCategory && matchesType;
         }).sort((a, b) => {
             const areaA = (a.mpoArea || a.to || '').toLowerCase();
             const areaB = (b.mpoArea || b.to || '').toLowerCase();
@@ -2833,7 +2755,6 @@
                 contentArea.innerHTML = html;
 
             } else {
-                // MONTH WISE VIEW
                 const groupedByMonth = {};
                 list.forEach(c => {
                     const dateObj = new Date(c.timestamp);
@@ -2886,7 +2807,7 @@
                         } else if (c.type === 'Gift') {
                             typeBadge = '<span style="background:var(--purple); color:white; padding:4px 8px; border-radius:12px; font-size:0.75rem;">Gift</span>';
                         } else {
-                            typeBadge = '<span style="background:var(--accent); color:white; padding:4px 8px; border-radius:12px; font-size:0.75rem;">Prod</span>';
+                                                        typeBadge = '<span style="background:var(--accent); color:white; padding:4px 8px; border-radius:12px; font-size:0.75rem;">Prod</span>';
                         }
 
                         html += `
@@ -2911,7 +2832,7 @@
         }
     };
 
-        window.deleteChallan = function(key, type, depotId) {
+    window.deleteChallan = function(key, type, depotId) {
         if(!confirm('Delete this record?')) return;
         
         let path = '';
@@ -3278,7 +3199,6 @@
         const obj = {};
         formData.forEach((value, key) => obj[key] = value);
 
-        // Handle Category Updates
         if(editType === 'editCategory' || editType === 'editGiftCategory') {
             const depotId = obj.depotId;
             if(!depotId) return showToast("Depot ID missing");
@@ -3288,10 +3208,9 @@
             return; 
         }
 
-        // Handle Add Stock (Prod or Gift)
         if(editType === 'addStockProd' || editType === 'addStockGift') {
             const addedStock = Number(obj.stockToAdd);
-            const type = obj.itemType; // 'prod' or 'gift'
+            const type = obj.itemType;
             
             let item;
             if (type === 'prod') item = data.prods.find(p => p.id === editId);
@@ -3316,7 +3235,6 @@
             return; 
         }
 
-        // Handle Product/Gift Save
         if(editType === 'prod' || editType === 'gift') {
             const depotId = obj.depotId;
             const customId = obj.id ? String(obj.id).trim() : null;
@@ -3330,7 +3248,6 @@
             return;
         }
 
-        // Handle Others (MPO, DA, User)
         if(obj.sales) obj.sales = Number(obj.sales);
         if(obj.isActive !== undefined) obj.isActive = obj.isActive === 'true' || obj.isActive === true;
 
@@ -3372,7 +3289,6 @@
             parsedExcelData = XLSX.utils.sheet_to_json(worksheet, {defval:""}); 
             if(parsedExcelData.length === 0) { document.getElementById('upload-status').innerText = "Error: Empty file."; return; }
             
-            // Render Preview
             const table = document.getElementById('upload-preview-table');
             document.getElementById('upload-preview-container').style.display = 'block';
             table.innerHTML = '';
@@ -3453,10 +3369,8 @@
         const allItems = [...fProds, ...fGifts];
         const currentMonth = new Date().toISOString().slice(0, 7);
 
-        // Calculate Used Quantities for Current Month (Regular + Hand Over)
         let monthlyUsage = {};
         
-        // Regular Challans
         fChallans.forEach(c => {
             const cDate = new Date(c.timestamp).toISOString().slice(0, 7);
             if(cDate === currentMonth && c.items) {
@@ -3467,7 +3381,6 @@
             }
         });
 
-        // Hand Overs
         data.handovers.forEach(c => {
             const cDate = new Date(c.timestamp).toISOString().slice(0, 7);
             if(cDate === currentMonth && c.items) {
@@ -3505,7 +3418,6 @@
         const fGifts = data.gifts;
         const currentMonth = new Date().toISOString().slice(0, 7);
 
-        // Recalculate usage for safety (Regular + Hand Over)
         let monthlyUsage = {};
         
         fChallans.forEach(c => {
@@ -3566,7 +3478,6 @@
 
         let monthlyUsage = {};
         
-        // Regular
         fChallans.forEach(c => {
             const cDate = new Date(c.timestamp).toISOString().slice(0, 7);
             if(cDate === currentMonth && c.items) {
@@ -3577,7 +3488,6 @@
             }
         });
         
-        // Hand Over
         data.handovers.forEach(c => {
             const cDate = new Date(c.timestamp).toISOString().slice(0, 7);
             if(cDate === currentMonth && c.items) {
@@ -3640,7 +3550,6 @@
             }
         });
         
-        // Hand Over usage
         data.handovers.forEach(c => {
             const cDate = new Date(c.timestamp).toISOString().slice(0, 7);
             if(cDate === currentMonth && c.items) {
@@ -3690,3 +3599,4 @@
 </script>
 </body>
 </html>
+                            
