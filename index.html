@@ -150,7 +150,7 @@
         }
         .search-input-sm:focus { border-color: var(--accent); }
 
-        .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
         .cat-card { background: white; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; border-top: 5px solid #ccc; }
         .cat-card.type-Aplus { border-top-color: var(--gold); }
         .cat-card.type-A { border-top-color: var(--accent); }
@@ -167,17 +167,76 @@
         .cat-header.D { background-color: var(--orange); } 
         .cat-header.E { background-color: var(--pink); }   
         
-        .cat-body { padding: 0; max-height: 500px; overflow-y: auto; }
+        .cat-body { padding: 0; max-height: 600px; overflow-y: auto; }
         
-        .cat-mpo-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--light); cursor: pointer; transition: 0.2s; background-color: white; }
+        .cat-mpo-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 10px 15px; border-bottom: 1px solid var(--light); 
+            cursor: pointer; transition: 0.2s; background-color: white; 
+        }
         .cat-mpo-item:hover { background-color: #f8f9fa; }
-        .cat-mpo-info { flex: 1; padding-right: 10px; }
-        .cat-mpo-info strong { font-size: 0.95rem; display: block; margin-bottom: 2px; }
-        .cat-mpo-info small { color: #7f8c8d; display: block; }
-        .cat-mpo-actions { display: flex; gap: 5px; align-items: center; }
+        .cat-mpo-info { flex: 1; padding-right: 10px; min-width: 0; }
+        .cat-mpo-info strong { font-size: 0.9rem; display: block; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cat-mpo-info small { color: #7f8c8d; display: block; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cat-mpo-actions { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
         
-        .btn-gen-prod { background-color: var(--accent); color: white; padding: 6px 10px; border-radius: 4px; font-size: 0.8rem; border: none; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
-        .btn-gen-gift { background-color: var(--purple); color: white; padding: 6px 10px; border-radius: 4px; font-size: 0.8rem; border: none; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
+        /* ===== TICK INDICATOR STYLES ===== */
+        .tick-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+        .tick-indicator i { font-size: 0.85rem; }
+        
+        /* Product Tick - Generated (Green) */
+        .tick-indicator.prod-ticked {
+            color: var(--success);
+            background: #e8f8f0;
+            border: 1px solid #a9dfbf;
+        }
+        /* Product Tick - Not Generated (Gray) */
+        .tick-indicator.prod-unticked {
+            color: #bbb;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+        }
+        /* Gift Tick - Generated (Purple) */
+        .tick-indicator.gift-ticked {
+            color: var(--purple);
+            background: #f3e5f5;
+            border: 1px solid #ce93d8;
+        }
+        /* Gift Tick - Not Generated (Gray) */
+        .tick-indicator.gift-unticked {
+            color: #bbb;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Summary bar in cat header */
+        .cat-summary-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+        .cat-summary-bar span {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .btn-gen-prod { background-color: var(--accent); color: white; padding: 5px 8px; border-radius: 4px; font-size: 0.75rem; border: none; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 3px; }
+        .btn-gen-gift { background-color: var(--purple); color: white; padding: 5px 8px; border-radius: 4px; font-size: 0.75rem; border: none; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 3px; }
         .btn-gen-prod:hover { background-color: #2980b9; transform: scale(1.05); }
         .btn-gen-gift:hover { background-color: #8e44ad; transform: scale(1.05); }
 
@@ -998,7 +1057,7 @@
             <strong>Instructions:</strong><br>
             1. The first row of your Excel file must contain Headers.<br>
             2. <strong>MPO Headers:</strong> ID, Name, Territory, Area, Region, <strong>CategoryProd</strong>, <strong>CategoryGift</strong>, Sales, DepotId (Optional), isActive (Optional - true/false)<br>
-            3. <strong>Product/Gift Headers:</strong> ID, Name, Pack, Unit, QtyA, QtyB, QtyC, QtyD, QtyE, ReceivedStock, DepotId (Optional).
+            3. <strong>Product/Gift Headers:</strong> ID, Name, Pack, Unit, QtyAplus, QtyA, QtyB, QtyC, QtyD, QtyE, ReceivedStock, DepotId (Optional).
         </div>
 
         <div class="form-group">
@@ -1186,8 +1245,27 @@
     let editType = null; 
     let editId = null;
 
-    // All valid categories including A+
     const ALL_CATEGORIES = ['A+', 'A', 'B', 'C', 'D', 'E'];
+
+    // ===== CHALLAN STATUS CHECKER =====
+    // Returns { hasProd: bool, hasGift: bool } for a given MPO in the current month
+    function getMpoChallanStatus(mpoId) {
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        let hasProd = false;
+        let hasGift = false;
+        
+        if (data.challans) {
+            data.challans.forEach(c => {
+                const cDate = new Date(c.timestamp).toISOString().slice(0, 7);
+                if (cDate === currentMonth && c.mpoId === mpoId) {
+                    if (c.type === 'Product') hasProd = true;
+                    if (c.type === 'Gift') hasGift = true;
+                }
+            });
+        }
+        
+        return { hasProd, hasGift };
+    }
 
     function handleLogin(e) {
         e.preventDefault();
@@ -1567,7 +1645,6 @@
         }
     }
 
-    // Helper: get quantity for a given category from product/gift object
     function getQtyForCategory(item, cat) {
         if (cat === 'A+') return item.qtyAplus || item.qtyA || 0;
         if (cat === 'A') return item.qtyA || 0;
@@ -1762,6 +1839,7 @@
         window.renderCategoryView(getFilteredData(data.mpos).filter(m => m.isActive !== false));
     };
 
+    // ===== UPDATED renderCategoryView WITH TICK INDICATORS =====
     window.renderCategoryView = function(mpos) {
         const container = document.getElementById('cat-grid-container');
         container.innerHTML = '';
@@ -1789,11 +1867,28 @@
             const totalSales = filteredMpos.reduce((sum, m) => sum + (Number(m.sales) || 0), 0);
             const mpoCount = filteredMpos.length;
 
+            // ===== Calculate summary: how many have P, G, both =====
+            let prodDone = 0, giftDone = 0, bothDone = 0;
+            filteredMpos.forEach(m => {
+                const status = getMpoChallanStatus(m.id);
+                if (status.hasProd) prodDone++;
+                if (status.hasGift) giftDone++;
+                if (status.hasProd && status.hasGift) bothDone++;
+            });
+
             let mpoListHtml = '';
             if(filteredMpos.length === 0) {
                 mpoListHtml = '<div style="padding:15px; text-align:center; color:#999;">No MPOs found.</div>';
             } else {
                 filteredMpos.forEach(m => {
+                    const status = getMpoChallanStatus(m.id);
+                    
+                    // Tick indicators
+                    const prodTickClass = status.hasProd ? 'prod-ticked' : 'prod-unticked';
+                    const prodTickIcon = status.hasProd ? 'fa-circle-check' : 'fa-circle-xmark';
+                    const giftTickClass = status.hasGift ? 'gift-ticked' : 'gift-unticked';
+                    const giftTickIcon = status.hasGift ? 'fa-circle-check' : 'fa-circle-xmark';
+
                     mpoListHtml += `
                         <div class="cat-mpo-item">
                             <div class="cat-mpo-info">
@@ -1801,6 +1896,12 @@
                                 <small>ID: ${m.id} | ${m.territory}</small>
                             </div>
                             <div class="cat-mpo-actions">
+                                <span class="tick-indicator ${prodTickClass}" title="Product Challan ${status.hasProd ? 'Generated' : 'Pending'}">
+                                    <i class="fa-solid ${prodTickIcon}"></i> P
+                                </span>
+                                <span class="tick-indicator ${giftTickClass}" title="Gift Challan ${status.hasGift ? 'Generated' : 'Pending'}">
+                                    <i class="fa-solid ${giftTickIcon}"></i> G
+                                </span>
                                 <button class="btn-gen-prod" onclick="window.directToGen('prod', '${m.id}')"><i class="fa-solid fa-box"></i> Prod</button>
                                 <button class="btn-gen-gift" onclick="window.directToGen('gift', '${m.id}')"><i class="fa-solid fa-gift"></i> Gift</button>
                             </div>
@@ -1810,6 +1911,16 @@
 
             const cssClass = cat === 'A+' ? 'type-Aplus' : `type-${cat}`;
             const headerClass = cat === 'A+' ? 'Aplus' : cat;
+
+            // Summary bar showing tick counts
+            const summaryBar = `
+                <div class="cat-summary-bar">
+                    <span style="color:#e8f8f0;"><i class="fa-solid fa-circle-check" style="color:var(--success);"></i> P: ${prodDone}</span>
+                    <span style="color:#f3e5f5;"><i class="fa-solid fa-circle-check" style="color:var(--purple);"></i> G: ${giftDone}</span>
+                    <span style="color:#e3f2fd;"><i class="fa-solid fa-check-double" style="color:var(--accent);"></i> Both: ${bothDone}</span>
+                    <span style="color:#fff3e0;"><i class="fa-solid fa-clock" style="color:var(--warning);"></i> Left: ${mpoCount - bothDone}</span>
+                </div>
+            `;
 
             container.innerHTML += `
                 <div class="cat-card ${cssClass}">
@@ -1821,6 +1932,7 @@
                                 <div style="font-size:0.75rem; opacity:0.9;">${mpoCount} MPOs</div>
                             </div>
                         </div>
+                        ${summaryBar}
                     </div>
                     <div class="cat-body">${mpoListHtml}</div>
                 </div>`;
@@ -2508,7 +2620,7 @@
         document.getElementById('p-region').innerText = c.mpoRegion || '-';
         
         document.getElementById('p-da-name').innerText = da.name;
-        document.getElementById('p-da-id').innerText = da.id;
+                document.getElementById('p-da-id').innerText = da.id;
         document.getElementById('p-ch-no').innerText = c.id;
         document.getElementById('p-date').innerText = c.date;
         document.getElementById('p-tp-sales').innerText = c.mpoSales ? Number(c.mpoSales).toLocaleString() : '0';
@@ -2944,7 +3056,6 @@
         `;
     };
 
-    // Helper to generate category select options with A+
     function getCategorySelectHTML(selectedVal, nameAttr) {
         const cats = ['A+', 'A', 'B', 'C', 'D', 'E'];
         let html = `<select name="${nameAttr}" required>`;
